@@ -1186,6 +1186,7 @@ function renderForm() {
     refreshField(el.dataset.k); refreshChecks();
     if (el.dataset.k === 'tgl_surat') renderSppn();
     if (el.dataset.k === 'wali') rememberWali(el.value);
+    if (el.dataset.k === 'pend' || el.dataset.k === 'tgl_lahir') autoEdu();
   }));
   $('form').querySelectorAll('[data-split]').forEach((b) => b.addEventListener('click', () => splitNames(b.dataset.split)));
   Object.keys(TYPES).forEach(refreshField);
@@ -1204,8 +1205,9 @@ function refreshField(k) {
     : s === 'cek' ? '<span class="pill cek">periksa</span>'
     : s === 'saran' ? '<span class="pill cek">saran</span>'
     : s === 'ubah' ? '<span class="pill ai">diubah</span>'
-    : s === 'ingat' ? '<span class="pill ai">terakhir dipakai</span>' : '';
-  if (NOTE[k]) $('n_' + k).textContent = NOTE[k];
+    : s === 'ingat' ? '<span class="pill ai">terakhir dipakai</span>'
+    : s === 'hitung' ? '<span class="pill ai">otomatis</span>' : '';
+  if (k in NOTE && $('n_' + k)) $('n_' + k).textContent = NOTE[k];
 }
 function splitNames(p) {
   const words = (NOTE['raw_' + p] || '').split(/\s+/).filter(Boolean);
@@ -1433,6 +1435,29 @@ function lastWali() {
   try { const w = localStorage.getItem(WALI_KEY); return w && DATA.walis.some((x) => x[0] === w) ? w : null; } catch (e) { return null; }
 }
 function rememberWali(w) { try { if (w) localStorage.setItem(WALI_KEY, w); } catch (e) {} }
+// Riwayat pendidikan otomatis: masuk SD umur 7 (Juli), SD 6 th, SMP 3, SMA 3, D3 3, S1 4, S2 2.
+const EDU_OFF = { sd_th: 13, smp_th: 16, sma_th: 19, d3_th: 22, s1_th: 23, s2_th: 25 };
+const EDU_CHAIN = {
+  'SD/sederajat': ['sd_th'], 'SMP/sederajat': ['sd_th', 'smp_th'], 'SMA/sederajat': ['sd_th', 'smp_th', 'sma_th'],
+  'Diploma': ['sd_th', 'smp_th', 'sma_th', 'd3_th'], 'Sarjana': ['sd_th', 'smp_th', 'sma_th', 's1_th'],
+  'Pascasarjana': ['sd_th', 'smp_th', 'sma_th', 's1_th', 's2_th'],
+};
+function autoEdu() {
+  const m = /^(\d{4})-\d{2}-\d{2}$/.exec(String(V.tgl_lahir || ''));
+  const chain = EDU_CHAIN[V.pend] || [];
+  const y = m ? +m[1] : null;
+  const thisYear = new Date().getFullYear();
+  const changed = [];
+  for (const [k, off] of Object.entries(EDU_OFF)) {
+    if (SRC[k] === 'ubah' || (String(V[k] ?? '').trim() && SRC[k] !== 'hitung')) continue; // isian tangan tidak ditimpa
+    const want = y && chain.includes(k) && y + off <= thisYear ? String(y + off) : '';
+    if (String(V[k] ?? '') === want) continue;
+    if (want) { V[k] = want; SRC[k] = 'hitung'; NOTE[k] = `Perkiraan dari tahun lahir ${y} (+${off}) – ubah bila berbeda`; }
+    else { delete V[k]; delete SRC[k]; NOTE[k] = ''; }
+    changed.push(k);
+  }
+  for (const k of changed) { const el = document.querySelector(`[data-k="${k}"]`); if (el) el.value = V[k] ?? ''; refreshField(k); }
+}
 function put(k, v, src, note) {
   if (v === null || v === undefined || v === '') return;
   V[k] = v; SRC[k] = src; if (note) NOTE[k] = note;
@@ -1675,6 +1700,7 @@ function resetData() { for (const o of [V, SRC, NOTE]) for (const k of Object.ke
 function showReview() {
   ['reviewCard', 'sppnCard', 'dlCard'].forEach((id) => $(id).classList.remove('hidden'));
   $('confirmBox').checked = false;
+  autoEdu();
   renderForm(); renderSppn(); refreshChecks();
 }
 $('manualBtn').addEventListener('click', () => {
