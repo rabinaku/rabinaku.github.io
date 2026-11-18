@@ -5638,7 +5638,7 @@ function kecilkanLogo(berkas) {
 // =====================================================================
 //  MEMUAT DATA, MASUK / KELUAR, GANTI SANDI, MULAI
 // =====================================================================
-const VERSI_UI = "10.2";
+const VERSI_UI = "10.3";
 let _muatMinta = 0, _peringatanVersi = false, _sandiTerbuka = false;
 
 // ---------- Salinan data di HP: halaman langsung tampil, data terbaru menyusul di belakang ----------
@@ -6539,7 +6539,15 @@ async function fbPublik(fn, args) {
     throw new Error("Dashboard belum tersedia.");
   }
   if (fn === "getVersiData") return JSON.parse(d.ver);
-  if (fn === "getAppData") { const a = JSON.parse(d.app); a.tokenKadaluarsa = !!args[0]; return a; }
+  if (fn === "getAppData") {
+    const a = JSON.parse(d.app);
+    a.tokenKadaluarsa = !!args[0];
+    // pengunjung tanpa login hanya melihat dashboard; halaman lain butuh data petugas
+    const p = {};
+    Object.keys(a.perms || {}).forEach(k => { if (k === "view_dashboard" || k.indexOf("dash_") === 0) p[k] = a.perms[k]; });
+    a.perms = p;
+    return a;
+  }
   const semua = JSON.parse(d.dash);
   return semua[args[1]] || semua.bulan_ini;
 }
@@ -6650,7 +6658,7 @@ function fbBuatServer(SHIM) {
  * ============================================================================
  */
 
-const VERSI = "10.2";
+const VERSI = "10.3";
 const TIDAK_IKUT = "- (Tidak Ikut)";
 const PROGRAM = ["BTQ", "Sholat", "Membaca"];
 const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
