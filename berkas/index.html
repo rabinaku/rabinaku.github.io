@@ -150,7 +150,7 @@ pre.src-text { max-height: 260px; overflow: auto; font-size: 12px; background: v
 
   <section class="card hidden" id="sppnCard" aria-labelledby="s3">
     <h2 id="s3"><span class="n">3</span>Nilai SPPN 3 bulan terakhir</h2>
-    <p class="lede" id="sppnLede">Bulan mengikuti tanggal surat. Nilai harian diambil dari lembar penilaian yang dipilih (variasi MED). Bawaannya lembar dengan bulan yang sama.</p>
+    <p class="lede" id="sppnLede">Bulan mengikuti tanggal surat. Nilai harian diambil dari lembar penilaian yang dipilih (variasi MED). Bawaannya lembar MED dengan bulan yang sama (mis. Oktober → MED OKTOBER).</p>
     <div class="tbl"><table id="sppnTable"><thead><tr><th>Bulan</th><th>Sumber nilai</th><th class="num">Kepribadian</th><th class="num">Kemandirian</th><th class="num">Sikap</th><th class="num">Kes. mental</th></tr></thead><tbody></tbody></table></div>
     <div class="alerts" id="sppnAlerts"></div>
   </section>
@@ -1596,7 +1596,7 @@ function renderSppn() {
     const keep = sppnChoice[i];
     if (keep && usable.some((s) => s.sheet === keep) && sppnChoice['m' + i] === name) { used.add(keep); return keep; }
     const same = usable.filter((s) => (s.month || '').toLowerCase() === name.toLowerCase() && !used.has(s.sheet));
-    const best = same.find((s) => s.sheet === name.toUpperCase()) || same[0] || usable.find((s) => !used.has(s.sheet));
+    const best = same.find((s) => /^MED\b/i.test(s.sheet)) || same[0] || usable.find((s) => !used.has(s.sheet));
     if (best) used.add(best.sheet);
     sppnChoice[i] = best && best.sheet; sppnChoice['m' + i] = name;
     return best && best.sheet;
