@@ -479,7 +479,11 @@ pre.src-text { max-height: 260px; overflow: auto; font-size: 12px; background: v
       if (!src || src === tgt) continue;
       out[pathOf(tgt)] = copyScores(expandShared(orig[pathOf(src)]), expandShared(orig[pathOf(tgt)]));
     }
-    for (const [ref, val] of Object.entries(cells)) out[target] = setCell(out[target], ref, val);
+    for (const [ref, val] of Object.entries(cells)) {
+      const bang = ref.lastIndexOf('!');
+      if (bang > 0) { const p = pathOf(ref.slice(0, bang)); out[p] = setCell(out[p], ref.slice(bang + 1), val); }
+      else out[target] = setCell(out[target], ref, val);
+    }
     const byName = {};
     for (const [name, p] of Object.entries(map)) byName[name] = out[p];
     return { entries, ws, out, byName, ss: await sharedStrings(entries) };
@@ -1072,7 +1076,7 @@ pre.src-text { max-height: 260px; overflow: auto; font-size: 12px; background: v
 
 <script>
 'use strict';
-const DATA = { map: {"nama": "C5", "noreg": "C6", "nik": "C7", "tmp_lahir": "C8", "tgl_lahir": "C9", "jk": "C10", "agama": "C11", "pend": "C12", "kerja": "C13", "kawin": "C14", "alamat": "C15", "pj_nama": "C18", "pj_umur": "C19", "pj_hub": "C20", "pj_kerja": "C21", "pj_alamat": "C22", "pj_hp": "C23", "lurah": "C24", "no_put": "C27", "tgl_put": "C28", "pidana": "C29", "kategori": "C30", "th": "C31", "bl": "C32", "hr": "C33", "denda": "C34", "subsider": "C35", "residivis": "C36", "tgl_tahan": "C37", "tgl_awal": "C38", "rem_bl": "C39", "rem_hr": "C40", "o_t13": "C41", "o_t12": "C42", "o_t23": "C43", "o_eksp": "C44", "p2_no": "C46", "p2_pidana": "C47", "p2_lama": "C48", "p2_denda": "C49", "p2_subsider": "C50", "p2_eksp": "C51", "ayah_nama": "C55", "ayah_kerja": "C56", "ayah_alamat": "C57", "ibu_nama": "C58", "ibu_kerja": "C59", "ibu_alamat": "C60", "ps_nama": "C62", "ps_umur": "C63", "ps_agama": "C64", "ps_pend": "C65", "ps_kerja": "C66", "ps_alamat": "C67", "anak1_nama": "C70", "anak1_lp": "D70", "anak1_umur": "E70", "anak1_kerja": "F70", "anak1_ket": "G70", "anak2_nama": "C71", "anak2_lp": "D71", "anak2_umur": "E71", "anak2_kerja": "F71", "anak2_ket": "G71", "anak3_nama": "C72", "anak3_lp": "D72", "anak3_umur": "E72", "anak3_kerja": "F72", "anak3_ket": "G72", "anak4_nama": "C73", "anak4_lp": "D73", "anak4_umur": "E73", "anak4_kerja": "F73", "anak4_ket": "G73", "anak5_nama": "C74", "anak5_lp": "D74", "anak5_umur": "E74", "anak5_kerja": "F74", "anak5_ket": "G74", "sdr1_nama": "C77", "sdr1_lp": "D77", "sdr1_umur": "E77", "sdr1_kerja": "F77", "sdr1_ket": "G77", "sdr2_nama": "C78", "sdr2_lp": "D78", "sdr2_umur": "E78", "sdr2_kerja": "F78", "sdr2_ket": "G78", "sdr3_nama": "C79", "sdr3_lp": "D79", "sdr3_umur": "E79", "sdr3_kerja": "F79", "sdr3_ket": "G79", "sdr4_nama": "C80", "sdr4_lp": "D80", "sdr4_umur": "E80", "sdr4_kerja": "F80", "sdr4_ket": "G80", "sdr5_nama": "C81", "sdr5_lp": "D81", "sdr5_umur": "E81", "sdr5_kerja": "F81", "sdr5_ket": "G81", "sdr6_nama": "C82", "sdr6_lp": "D82", "sdr6_umur": "E82", "sdr6_kerja": "F82", "sdr6_ket": "G82", "sdr7_nama": "C83", "sdr7_lp": "D83", "sdr7_umur": "E83", "sdr7_kerja": "F83", "sdr7_ket": "G83", "sd_th": "C86", "smp_th": "C87", "sma_th": "C88", "d3_th": "C89", "s1_th": "C90", "s2_th": "C91", "tdk_sekolah": "C93", "tdk_tamat": "C94", "baca": "C95", "hitung": "C96", "bahasa": "C97", "tgl_surat": "C100", "wali": "C101"}, cats: [], walis: [] };
+const DATA = { map: {"nama": "C5", "noreg": "C6", "nik": "C7", "tmp_lahir": "C8", "tgl_lahir": "C9", "jk": "C10", "agama": "C11", "pend": "C12", "kerja": "C13", "kawin": "C14", "alamat": "C15", "pj_nama": "C18", "pj_umur": "C19", "pj_hub": "C20", "pj_kerja": "C21", "pj_alamat": "C22", "pj_hp": "C23", "lurah": "C24", "no_put": "C27", "tgl_put": "C28", "pidana": "C29", "kategori": "C30", "th": "C31", "bl": "C32", "hr": "C33", "denda": "C34", "subsider": "C35", "residivis": "C36", "tgl_tahan": "C37", "tgl_awal": "C38", "rem_bl": "C39", "rem_hr": "C40", "o_t13": "C41", "o_t12": "C42", "o_t23": "C43", "o_eksp": "C44", "sisa": "BANTU!C37", "p2_no": "C46", "p2_pidana": "C47", "p2_lama": "C48", "p2_denda": "C49", "p2_subsider": "C50", "p2_eksp": "C51", "ayah_nama": "C55", "ayah_kerja": "C56", "ayah_alamat": "C57", "ibu_nama": "C58", "ibu_kerja": "C59", "ibu_alamat": "C60", "ps_nama": "C62", "ps_umur": "C63", "ps_agama": "C64", "ps_pend": "C65", "ps_kerja": "C66", "ps_alamat": "C67", "anak1_nama": "C70", "anak1_lp": "D70", "anak1_umur": "E70", "anak1_kerja": "F70", "anak1_ket": "G70", "anak2_nama": "C71", "anak2_lp": "D71", "anak2_umur": "E71", "anak2_kerja": "F71", "anak2_ket": "G71", "anak3_nama": "C72", "anak3_lp": "D72", "anak3_umur": "E72", "anak3_kerja": "F72", "anak3_ket": "G72", "anak4_nama": "C73", "anak4_lp": "D73", "anak4_umur": "E73", "anak4_kerja": "F73", "anak4_ket": "G73", "anak5_nama": "C74", "anak5_lp": "D74", "anak5_umur": "E74", "anak5_kerja": "F74", "anak5_ket": "G74", "sdr1_nama": "C77", "sdr1_lp": "D77", "sdr1_umur": "E77", "sdr1_kerja": "F77", "sdr1_ket": "G77", "sdr2_nama": "C78", "sdr2_lp": "D78", "sdr2_umur": "E78", "sdr2_kerja": "F78", "sdr2_ket": "G78", "sdr3_nama": "C79", "sdr3_lp": "D79", "sdr3_umur": "E79", "sdr3_kerja": "F79", "sdr3_ket": "G79", "sdr4_nama": "C80", "sdr4_lp": "D80", "sdr4_umur": "E80", "sdr4_kerja": "F80", "sdr4_ket": "G80", "sdr5_nama": "C81", "sdr5_lp": "D81", "sdr5_umur": "E81", "sdr5_kerja": "F81", "sdr5_ket": "G81", "sdr6_nama": "C82", "sdr6_lp": "D82", "sdr6_umur": "E82", "sdr6_kerja": "F82", "sdr6_ket": "G82", "sdr7_nama": "C83", "sdr7_lp": "D83", "sdr7_umur": "E83", "sdr7_kerja": "F83", "sdr7_ket": "G83", "sd_th": "C86", "smp_th": "C87", "sma_th": "C88", "d3_th": "C89", "s1_th": "C90", "s2_th": "C91", "tdk_sekolah": "C93", "tdk_tamat": "C94", "baca": "C95", "hitung": "C96", "bahasa": "C97", "tgl_surat": "C100", "wali": "C101"}, cats: [], walis: [] };
 const MAP = DATA.map;
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
@@ -1104,6 +1108,7 @@ const SECTIONS = [
     ['rem_bl','Remisi – bulan',{type:'number'}], ['rem_hr','Remisi – hari',{type:'number'}],
     ['o_t13','1/3 masa pidana',{type:'date'}], ['o_t12','1/2 masa pidana',{type:'date'}],
     ['o_t23','2/3 masa pidana',{type:'date'}], ['o_eksp','Ekspirasi',{type:'date'}],
+    ['sisa','Sisa pidana di SDP (bulan)',{type:'number', hint:'SPPN bulan ke-3 = angka ini, ke-2 = +1, ke-1 = +2. Kosongkan = dihitung dari ekspirasi'}],
   ], more: { t: 'Putusan lain (bila lebih dari 1 putusan)', f: [
     ['p2_no','Nomor & tanggal putusan',{}], ['p2_pidana','Tindak pidana',{}], ['p2_lama','Lama pidana',{hint:'contoh: 1 Tahun 2 Bulan 0 Hari'}],
     ['p2_denda','Denda',{}], ['p2_subsider','Subsider',{}], ['p2_eksp','Ekspirasi',{}],
@@ -1285,6 +1290,8 @@ function parseSdp(text) {
   r.o_t12 = iso(grab(text, '1/2 Masa Hukuman'));
   r.o_t23 = iso(grab(text, '2/3 Masa Hukuman'));
   r.o_eksp = iso(grab(text, 'Tgl Ekspirasi Akhir'));
+  const sp = lama(grab(text, 'Sisa Pidana'));
+  if (sp) { r.sisa = sp.th * 12 + sp.bl; r.sisa_hr = sp.hr; r.sisa_raw = grab(text, 'Sisa Pidana'); }
   r.kejahatan = grab(text, 'Kejahatan');
   r.pasal = grab(text, 'Pasal');
   r.uu = grab(text, 'Undang-Undang');
@@ -1493,6 +1500,7 @@ function build(text, sdp, idt) {
   if (sdp.subsider_hr) ALERTS.push(['warn', `Subsider di SDP ada ${sdp.subsider_hr} hari; template hanya menampung bulan. Periksa isian subsider.`]);
   if (sdp.tgl_tahan) sPut('tgl_tahan', sdp.tgl_tahan);
   ['o_t13', 'o_t12', 'o_t23', 'o_eksp'].forEach((k) => sdp[k] && sPut(k, sdp[k]));
+  if (sdp.sisa != null) { sPut('sisa', sdp.sisa); NOTE.sisa = 'Tertulis di SDP: ' + sdp.sisa_raw + (sdp.sisa_hr ? ' (hari tidak dihitung)' : ''); }
   put('residivis', 0, 'saran', 'Bawaan 0 – ubah bila residivis');
   if (sdp.remisiKosong) { sPut('rem_bl', 0); sPut('rem_hr', 0); NOTE.rem_bl = 'Tabel remisi di SDP: Data Kosong'; }
   else if (/REMISI/i.test(text)) ALERTS.push(['warn', 'Tabel REMISI di SDP berisi data. Isi jumlah remisi (bulan/hari) secara manual.']);
