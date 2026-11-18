@@ -1185,6 +1185,7 @@ function renderForm() {
     if (SRC[el.dataset.k]) { SRC[el.dataset.k] = 'ubah'; }
     refreshField(el.dataset.k); refreshChecks();
     if (el.dataset.k === 'tgl_surat') renderSppn();
+    if (el.dataset.k === 'wali') rememberWali(el.value);
   }));
   $('form').querySelectorAll('[data-split]').forEach((b) => b.addEventListener('click', () => splitNames(b.dataset.split)));
   Object.keys(TYPES).forEach(refreshField);
@@ -1202,7 +1203,8 @@ function refreshField(k) {
     : s === 'ai' ? '<span class="pill ai">AI · cocok</span>'
     : s === 'cek' ? '<span class="pill cek">periksa</span>'
     : s === 'saran' ? '<span class="pill cek">saran</span>'
-    : s === 'ubah' ? '<span class="pill ai">diubah</span>' : '';
+    : s === 'ubah' ? '<span class="pill ai">diubah</span>'
+    : s === 'ingat' ? '<span class="pill ai">terakhir dipakai</span>' : '';
   if (NOTE[k]) $('n_' + k).textContent = NOTE[k];
 }
 function splitNames(p) {
@@ -1426,6 +1428,11 @@ function nikDate(nik, jk) {
 
 // ---------------------------------------------------------------- gabungkan
 const ALERTS = [];
+const WALI_KEY = 'berkasIntegrasi.waliTerakhir';
+function lastWali() {
+  try { const w = localStorage.getItem(WALI_KEY); return w && DATA.walis.some((x) => x[0] === w) ? w : null; } catch (e) { return null; }
+}
+function rememberWali(w) { try { if (w) localStorage.setItem(WALI_KEY, w); } catch (e) {} }
 function put(k, v, src, note) {
   if (v === null || v === undefined || v === '') return;
   V[k] = v; SRC[k] = src; if (note) NOTE[k] = note;
@@ -1487,6 +1494,7 @@ function build(text, sdp, idt) {
   const telp = sdp.telp || idt.telp;
   if (telp) put('pj_hp', telp.replace(/[^\d+]/g, ''), sdp.telp ? 'sdp' : 'cek', 'No. Telp Keluarga di SDP: ' + telp);
   put('tgl_surat', lastDayPrevMonth(), 'saran', 'Bawaan: akhir bulan lalu');
+  put('wali', lastWali(), 'ingat', 'Wali terakhir yang dipilih di perangkat ini');
 
   // pemeriksaan silang
   if (V.nik && V.tgl_lahir) {
@@ -1672,6 +1680,7 @@ function showReview() {
 $('manualBtn').addEventListener('click', () => {
   resetData(); put('residivis', 0, 'saran'); put('rem_bl', 0, 'saran'); put('rem_hr', 0, 'saran');
   put('tgl_surat', lastDayPrevMonth(), 'saran', 'Bawaan: akhir bulan lalu');
+  put('wali', lastWali(), 'ingat', 'Wali terakhir yang dipilih di perangkat ini');
   showReview();
 });
 $('readBtn').addEventListener('click', async () => {
@@ -1724,6 +1733,7 @@ $('dlBtn').addEventListener('click', async () => {
       else cells[ref] = v;
     }
     const scoreMap = {}; SLOTS.forEach((s, i) => { if (sppnChoice[i]) scoreMap[s] = sppnChoice[i]; });
+    rememberWali(V.wali);
     const base = fileBase();
     if (ASSETS && window.PDFLib) {
       st.textContent = 'Menyusun PDF…';
