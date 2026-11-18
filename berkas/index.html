@@ -1747,8 +1747,18 @@ async function readSig() {
   const png = bytes[0] === 0x89 && bytes[1] === 0x50;
   const jpg = bytes[0] === 0xFF && bytes[1] === 0xD8;
   if (!png && !jpg) throw new Error('Tanda tangan harus JPG atau PNG.');
+  // perkecil foto tanda tangan (maks. 600 px) agar PDF tetap kecil
+  try {
+    const bmp = await createImageBitmap(new Blob([bytes]));
+    const k = Math.min(1, 600 / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(bmp, 0, 0, cv.width, cv.height);
+    const blob = await new Promise((ok) => cv.toBlob(ok, 'image/jpeg', 0.85));
+    if (blob && blob.size < bytes.length) return { bytes: new Uint8Array(await blob.arrayBuffer()), type: 'jpg', exact: false };
+  } catch (e) { /* pakai file asli */ }
   return { bytes, type: png ? 'png' : 'jpg', exact: false };
 }
+const MAX_PDF = 2 * 1024 * 1024;
 function showOutputs() {
   outFiles.forEach((o) => { if (o.url) URL.revokeObjectURL(o.url); o.url = URL.createObjectURL(o.blob); });
   $('outList').innerHTML = outFiles.map((o) => `<li><span><span class="kind">${esc(o.kind)}</span><br>${esc(o.name)} <span class="status">${(o.blob.size / 1024).toFixed(0)} KB</span></span><a class="dl" href="${o.url}" download="${esc(o.name)}">Unduh</a></li>`).join('');
@@ -1778,6 +1788,8 @@ $('dlBtn').addEventListener('click', async () => {
     st.textContent = 'Menyusun file Excel…';
     const xl = await XlsxFill.fillWorkbook(template, cells, scoreMap);
     outFiles.push({ kind: 'Excel – semua lembar', name: base + '.xlsx', blob: xl });
+    const big = outFiles.filter((o) => /\.pdf$/.test(o.name) && o.blob.size >= MAX_PDF);
+    if (big.length) throw new Error('Ukuran PDF melebihi 2 MB (' + big.map((o) => o.name + ' ' + (o.blob.size / 1048576).toFixed(1) + ' MB').join(', ') + '). Pakai gambar tanda tangan yang lebih kecil.');
     showOutputs();
     st.textContent = (ASSETS && window.PDFLib ? 'Berkas siap. ' : 'PDF tidak tersedia (' + (assetErr || 'pustaka PDF gagal dimuat') + '); hanya Excel. ') + 'Klik Unduh pada tiap file.';
   } catch (e) {
