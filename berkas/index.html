@@ -1066,7 +1066,7 @@ pre.src-text { max-height: 260px; overflow: auto; font-size: 12px; background: v
     for (const [name, xml] of Object.entries(b.byName)) sheets[name] = X.parseSheet(xml, ss);
     const wb = new X.Workbook(sheets);
     const outs = await R.renderPdfs({ PDFLib: o.PDFLib, latar: o.assets.latar, layout: o.assets.layout, check: o.assets.check,
-      wb, fmt: X.fmtNum, sig: o.sig || null, groups: [[...Array(18).keys()], [18]] });
+      wb, fmt: X.fmtNum, sig: o.sig || null, groups: o.assets.layout.groups || [[...Array(18).keys()], [18]] });
     return { lppSppn: outs[0], df: outs[1], wb };
   }
   const api = { makePdfs };
