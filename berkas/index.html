@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pembuat Berkas Usulan Integrasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Alat kerja satu kolom: unggah → periksa → unduh. Biru dinas + aksen emas. */
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --ink: #18212e;
+  --muted: #5b6676;
+  --line: #d9dfe7;
+  --accent: #1d3f6e;
+  --accent-ink: #ffffff;
+  --gold: #b0892f;
+  --ok: #1f7a4d;   --ok-bg: #e4f3eb;
+  --info: #22568f; --info-bg: #e5eef9;
+  --warn: #8a5a00; --warn-bg: #fdf1d8;
+  --bad: #a32323;  --bad-bg: #fbe5e5;
+  --field: #ffffff;
+  --font-display: "Libre Franklin", "Segoe UI", Arial, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --panel: #18202a; --ink: #e6ebf2; --muted: #9aa6b5; --line: #2c3745;
+    --accent: #7fa8e0; --accent-ink: #0d1520; --gold: #d6b25e;
+    --ok: #6fd3a0; --ok-bg: #173327; --info: #8dbbf2; --info-bg: #182a40;
+    --warn: #f0c46a; --warn-bg: #3a2d10; --bad: #f28b8b; --bad-bg: #3d1a1a; --field: #111821;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --panel: #18202a; --ink: #e6ebf2; --muted: #9aa6b5; --line: #2c3745;
+  --accent: #7fa8e0; --accent-ink: #0d1520; --gold: #d6b25e;
+  --ok: #6fd3a0; --ok-bg: #173327; --info: #8dbbf2; --info-bg: #182a40;
+  --warn: #f0c46a; --warn-bg: #3a2d10; --bad: #f28b8b; --bad-bg: #3d1a1a; --field: #111821;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body); }
+.wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 18px; }
+header.top { display: grid; gap: 4px; padding-bottom: 6px; border-bottom: 3px solid var(--gold); }
+header.top .org { font: 600 12px/1.3 var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 700 26px/1.2 var(--font-display); margin: 0; text-wrap: balance; }
+h2 { font: 600 17px/1.3 var(--font-display); margin: 0; display: flex; gap: 10px; align-items: center; }
+h2 .n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 13px; }
+h3 { font: 600 14px/1.3 var(--font-display); margin: 6px 0 0; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+.lede { color: var(--muted); margin: 0; max-width: 70ch; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; }
+.drop { border: 2px dashed var(--line); border-radius: 10px; padding: 22px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; }
+.drop.over { border-color: var(--accent); background: var(--info-bg); }
+.drop strong { font-family: var(--font-display); }
+.files { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.files li { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.files li span.t { color: var(--muted); font-size: 13px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button { font: 600 14px var(--font-body); border-radius: 8px; padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+button.ghost { background: transparent; color: var(--accent); }
+button.small { padding: 4px 10px; font-size: 13px; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, .drop:focus-visible, summary:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.status { font-size: 14px; color: var(--muted); }
+.status.err { color: var(--bad); }
+.alerts { display: grid; gap: 8px; }
+.alert { border-radius: 8px; padding: 10px 12px; border-left: 4px solid; font-size: 14px; }
+.alert.bad { background: var(--bad-bg); border-color: var(--bad); }
+.alert.warn { background: var(--warn-bg); border-color: var(--warn); }
+.alert.info { background: var(--info-bg); border-color: var(--info); }
+.alert.ok { background: var(--ok-bg); border-color: var(--ok); }
+.summary { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.pill.sdp { background: var(--ok-bg); color: var(--ok); }
+.pill.ai { background: var(--info-bg); color: var(--info); }
+.pill.cek { background: var(--warn-bg); color: var(--warn); }
+.pill.kosong { background: var(--bad-bg); color: var(--bad); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.f { display: grid; gap: 4px; align-content: start; }
+.f.wide { grid-column: 1 / -1; }
+.f label { font-size: 13px; font-weight: 600; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.f label .req { color: var(--bad); }
+.f input, .f select, td input, td select { font: 15px var(--font-body); padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--field); color: var(--ink); width: 100%; min-width: 0; }
+.f.need input, .f.need select { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+.f.cek input, .f.cek select { border-color: var(--warn); }
+.f .src { font-size: 12px; color: var(--muted); }
+details.more { border-top: 1px dashed var(--line); padding-top: 8px; }
+details.more summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border-bottom: 1px solid var(--line); padding: 6px; text-align: left; vertical-align: middle; }
+th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.c-no { width: 34px; color: var(--muted); }
+td.c-lp { width: 70px; } td.c-um { width: 80px; }
+.raw { font-size: 13px; color: var(--muted); }
+.confirm { display: flex; gap: 10px; align-items: flex-start; }
+.confirm input { width: 18px; height: 18px; margin-top: 2px; }
+.big { font-size: 16px; padding: 12px 22px; }
+.files { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.files li { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--field); }
+.files .kind { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
+.files a.dl { display: inline-block; text-decoration: none; background: var(--accent); color: var(--accent-ink); border-radius: 6px; padding: 8px 14px; font-weight: 600; }
+.sigbox { margin: 12px 0; }
+.hidden { display: none !important; }
+pre.src-text { max-height: 260px; overflow: auto; font-size: 12px; background: var(--bg); padding: 10px; border-radius: 8px; white-space: pre; }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } h1 { font-size: 22px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="org">Rutan Kelas IIB Raba Bima · Berkas usulan integrasi</div>
+    <h1>Pembuat Berkas Usulan Integrasi</h1>
+    <p class="lede">Unggah PDF <b>Identitas WBP</b> dan <b>Detail Perkara</b> dari SDP. Data dibaca otomatis dari pola cetakan SDP, Anda periksa dan lengkapi, lalu unduh PDF siap cetak (LPP + SPPN dan Daftar F) serta file Excel lengkap.</p>
+  </header>
+
+  <section class="card" aria-labelledby="s1">
+    <h2 id="s1"><span class="n">1</span>Unggah PDF dari SDP</h2>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Pilih atau jatuhkan file PDF">
+      <strong>Jatuhkan file PDF di sini</strong>
+      <span class="status">atau klik untuk memilih · bisa lebih dari satu file</span>
+      <input type="file" id="pdfInput" accept="application/pdf,.pdf" multiple class="hidden">
+    </div>
+    <ul class="files" id="fileList"></ul>
+    <div class="row">
+      <button id="readBtn" disabled>Baca data dari PDF</button>
+      <button id="manualBtn" class="ghost">Isi manual tanpa PDF</button>
+      <span class="status" id="readStatus"></span>
+    </div>
+    <details class="more hidden" id="srcBox"><summary>Lihat teks yang terbaca dari PDF</summary><pre class="src-text" id="srcText"></pre></details>
+  </section>
+
+  <section class="card hidden" id="reviewCard" aria-labelledby="s2">
+    <h2 id="s2"><span class="n">2</span>Periksa dan lengkapi data</h2>
+    <div class="summary" id="legend">
+      <span class="pill sdp">SDP · terbaca pasti</span>
+            <span class="pill cek">Periksa</span>
+      <span class="pill kosong">Wajib diisi</span>
+    </div>
+    <div class="alerts" id="alerts"></div>
+    <div id="form"></div>
+  </section>
+
+  <section class="card hidden" id="sppnCard" aria-labelledby="s3">
+    <h2 id="s3"><span class="n">3</span>Nilai SPPN 3 bulan terakhir</h2>
+    <p class="lede" id="sppnLede">Bulan mengikuti tanggal surat. Nilai harian diambil dari lembar penilaian yang dipilih (variasi MED). Bawaannya lembar dengan bulan yang sama.</p>
+    <div class="tbl"><table id="sppnTable"><thead><tr><th>Bulan</th><th>Sumber nilai</th><th class="num">Kepribadian</th><th class="num">Kemandirian</th><th class="num">Sikap</th><th class="num">Kes. mental</th></tr></thead><tbody></tbody></table></div>
+    <div class="alerts" id="sppnAlerts"></div>
+  </section>
+
+  <section class="card hidden" id="dlCard" aria-labelledby="s4">
+    <h2 id="s4"><span class="n">4</span>Unduh berkas (PDF &amp; Excel)</h2>
+    <div class="alerts" id="finalAlerts"></div>
+    <div class="sigbox hidden" id="sigBox">
+      <div class="alert warn" id="sigNote"></div>
+      <label class="row"><span>Tanda tangan wali (opsional, JPG/PNG latar putih):</span> <input type="file" id="sigInput" accept="image/png,image/jpeg"></label>
+    </div>
+    <label class="confirm"><input type="checkbox" id="confirmBox"> <span>Saya sudah memeriksa semua data di atas dan sesuai dengan dokumen asli.</span></label>
+    <div class="row">
+      <button id="dlBtn" class="big" disabled>Buat berkas</button>
+      <span class="status" id="dlStatus"></span>
+    </div>
+    <ul class="files" id="outList"></ul>
+    <p class="status">PDF siap cetak: <b>LPP + 3 SPPN</b> dan <b>Daftar F</b>. File Excel: setelah dibuka klik <b>Aktifkan Pengeditan</b> (Enable Editing) agar semua lembar terhitung.</p>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>
+/* Pengisi template Excel tanpa pustaka luar: baca/tulis ZIP memakai
+   DecompressionStream / CompressionStream bawaan browser. */
+(function (root) {
+  'use strict';
+
+  const CRC_TABLE = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(u8) {
+    let c = 0xffffffff;
+    for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+
+  async function pipe(u8, stream) {
+    const out = new Response(new Blob([u8]).stream().pipeThrough(stream));
+    return new Uint8Array(await out.arrayBuffer());
+  }
+  const inflateRaw = (u8) => pipe(u8, new DecompressionStream('deflate-raw'));
+  const deflateRaw = (u8) => pipe(u8, new CompressionStream('deflate-raw'));
+
+  function readZip(buf) {
+    const u8 = new Uint8Array(buf);
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    let eocd = -1;
+    for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('File template bukan file Excel yang valid.');
+    const count = dv.getUint16(eocd + 10, true);
+    let p = dv.getUint32(eocd + 16, true);
+    const dec = new TextDecoder();
+    const entries = [];
+    for (let i = 0; i < count; i++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('Struktur ZIP rusak.');
+      const flags = dv.getUint16(p + 8, true);
+      const method = dv.getUint16(p + 10, true);
+      const time = dv.getUint16(p + 12, true);
+      const date = dv.getUint16(p + 14, true);
+      const crc = dv.getUint32(p + 16, true);
+      const csize = dv.getUint32(p + 20, true);
+      const usize = dv.getUint32(p + 24, true);
+      const nlen = dv.getUint16(p + 28, true);
+      const xlen = dv.getUint16(p + 30, true);
+      const clen = dv.getUint16(p + 32, true);
+      const lho = dv.getUint32(p + 42, true);
+      const nameBytes = u8.slice(p + 46, p + 46 + nlen);
+      const name = dec.decode(nameBytes);
+      const lnlen = dv.getUint16(lho + 26, true);
+      const lxlen = dv.getUint16(lho + 28, true);
+      const dataStart = lho + 30 + lnlen + lxlen;
+      entries.push({ name, nameBytes, flags, method, time, date, crc, csize, usize,
+                     data: u8.subarray(dataStart, dataStart + csize) });
+      p += 46 + nlen + xlen + clen;
+    }
+    return entries;
+  }
+
+  async function readText(entry) {
+    const raw = entry.method === 0 ? entry.data : await inflateRaw(entry.data);
+    return new TextDecoder().decode(raw);
+  }
+
+  async function setText(entry, text) {
+    const raw = new TextEncoder().encode(text);
+    entry.crc = crc32(raw);
+    entry.usize = raw.length;
+    entry.data = await deflateRaw(raw);
+    entry.csize = entry.data.length;
+    entry.method = 8;
+  }
+
+  function writeZip(entries) {
+    const parts = [];
+    const central = [];
+    let offset = 0;
+    for (const e of entries) {
+      const flags = e.flags & 0x0800;           // simpan hanya bendera UTF-8
+      const lh = new Uint8Array(30 + e.nameBytes.length);
+      const v = new DataView(lh.buffer);
+      v.setUint32(0, 0x04034b50, true); v.setUint16(4, 20, true); v.setUint16(6, flags, true);
+      v.setUint16(8, e.method, true); v.setUint16(10, e.time, true); v.setUint16(12, e.date, true);
+      v.setUint32(14, e.crc, true); v.setUint32(18, e.csize, true); v.setUint32(22, e.usize, true);
+      v.setUint16(26, e.nameBytes.length, true); v.setUint16(28, 0, true);
+      lh.set(e.nameBytes, 30);
+      parts.push(lh, e.data);
+      const ch = new Uint8Array(46 + e.nameBytes.length);
+      const c = new DataView(ch.buffer);
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true);
+      c.setUint16(8, flags, true); c.setUint16(10, e.method, true); c.setUint16(12, e.time, true);
+      c.setUint16(14, e.date, true); c.setUint32(16, e.crc, true); c.setUint32(20, e.csize, true);
+      c.setUint32(24, e.usize, true); c.setUint16(28, e.nameBytes.length, true);
+      c.setUint32(42, offset, true);
+      ch.set(e.nameBytes, 46);
+      central.push(ch);
+      offset += lh.length + e.data.length;
+    }
+    const cdSize = central.reduce((s, x) => s + x.length, 0);
+    const end = new Uint8Array(22);
+    const ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(8, entries.length, true); ev.setUint16(10, entries.length, true);
+    ev.setUint32(12, cdSize, true); ev.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, end],
+      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }
+
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
+
+  function setCell(xml, ref, value) {
+    const re = new RegExp('<c r="' + ref + '"(?=[\\s/>])([^>]*?)(\\/>|>[\\s\\S]*?<\\/c>)');
+    const m = xml.match(re);
+    if (!m) throw new Error('Sel ' + ref + ' tidak ditemukan di MASTER.');
+    const s = (m[1].match(/\ss="(\d+)"/) || [])[1];
+    const sAttr = s ? ' s="' + s + '"' : '';
+    let cell;
+    if (value === null || value === undefined || value === '') {
+      cell = '<c r="' + ref + '"' + sAttr + '/>';
+    } else if (typeof value === 'number' && isFinite(value)) {
+      cell = '<c r="' + ref + '"' + sAttr + '><v>' + value + '</v></c>';
+    } else {
+      cell = '<c r="' + ref + '"' + sAttr + ' t="inlineStr"><is><t xml:space="preserve">' +
+        esc(value) + '</t></is></c>';
+    }
+    return xml.replace(re, cell);
+  }
+
+  async function sheetMap(entries) {
+    const wbXml = await readText(entries.find((e) => e.name === 'xl/workbook.xml'));
+    const relsXml = await readText(entries.find((e) => e.name === 'xl/_rels/workbook.xml.rels'));
+    const map = {};
+    for (const m of wbXml.matchAll(/<sheet\b[^>]*>/g)) {
+      const name = (m[0].match(/name="([^"]*)"/) || [])[1];
+      const rid = (m[0].match(/r:id="([^"]*)"/) || [])[1];
+      const rel = (relsXml.match(new RegExp('<Relationship\\b[^>]*Id="' + rid + '"[^>]*>')) || [''])[0];
+      const t = (rel.match(/Target="([^"]+)"/) || [])[1];
+      if (name && t) map[name.replace(/&amp;/g, '&')] = t.replace(/^\/?(xl\/)?/, 'xl/');
+    }
+    return map;
+  }
+
+  function cellXml(xml, ref) {
+    const m = xml.match(new RegExp('<c r="' + ref + '"(?=[\\s/>])[^>]*?(\\/>|>[\\s\\S]*?<\\/c>)'));
+    return m ? m[0] : null;
+  }
+  function cellValue(xml, ref, ss) {
+    const c = cellXml(xml, ref);
+    if (!c) return null;
+    if (/\st="s"/.test(c) && ss) { const v = (c.match(/<v>([^<]*)<\/v>/) || [])[1]; return v != null ? ss[+v] : null; }
+    const t = c.match(/<t[^>]*>([^<]*)<\/t>/) || c.match(/<v>([^<]*)<\/v>/);
+    return t ? t[1] : null;
+  }
+  async function sharedStrings(entries) {
+    const e = entries.find((x) => x.name === 'xl/sharedStrings.xml');
+    if (!e) return [];
+    const sx = await readText(e);
+    return [...sx.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) => [...m[1].matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1]).join(''));
+  }
+
+
+  // ---- rumus bersama (shared formula) -> rumus biasa, agar aman disalin antar-lembar
+  const colNum = (s) => { let n = 0; for (const ch of s) n = n * 26 + (ch.charCodeAt(0) - 64); return n; };
+  const REFX = /^(?:('(?:[^']|'')+'|[A-Za-z_][A-Za-z0-9_\.]*)!)?(\$?)([A-Z]{1,3})(\$?)(\d+)(?::(\$?)([A-Z]{1,3})(\$?)(\d+))?(?![A-Za-z0-9_(])/;
+  function shiftFormula(f, dr, dc) {
+    let out = '', i = 0, inStr = false;
+    while (i < f.length) {
+      const ch = f[i];
+      if (ch === '"') { inStr = !inStr; out += ch; i++; continue; }
+      if (!inStr) {
+        const rm = f.slice(i).match(REFX);
+        if (rm && (i === 0 || !/[A-Za-z0-9_]/.test(f[i - 1]))) {
+          const sh = (cabs, c, rabs, r) => (cabs ? '$' : '') + COL(cabs ? colNum(c) : colNum(c) + dc) + (rabs ? '$' : '') + (rabs ? +r : +r + dr);
+          let s = (rm[1] ? rm[1] + '!' : '') + sh(rm[2], rm[3], rm[4], rm[5]);
+          if (rm[7]) s += ':' + sh(rm[6], rm[7], rm[8], rm[9]);
+          out += s; i += rm[0].length; continue;
+        }
+        const fm = f.slice(i).match(/^[A-Za-z_][A-Za-z0-9_\.]*\(/);
+        if (fm) { out += fm[0]; i += fm[0].length; continue; }
+      }
+      out += ch; i++;
+    }
+    return out;
+  }
+  function expandShared(xml) {
+    if (!/t="shared"/.test(xml)) return xml;
+    const masters = {};
+    const unescX = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+    const escX = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    for (const m of xml.matchAll(/<c r="([A-Z]+)(\d+)"[^>]*>\s*<f\b([^>]*\bt="shared"[^>]*)>([^<]+)<\/f>/g)) {
+      const si = (m[3].match(/\bsi="(\d+)"/) || [])[1];
+      masters[si] = { r: +m[2], c: colNum(m[1]), f: unescX(m[4]) };
+    }
+    return xml.replace(/<c r="([A-Z]+)(\d+)"([^>]*)>\s*<f\b([^>]*\bt="shared"[^>]*?)(\/>|>([^<]*)<\/f>)/g, (all, col, row, attrs, fa, tail, text) => {
+      const si = (fa.match(/\bsi="(\d+)"/) || [])[1];
+      const ms = masters[si];
+      let f;
+      if (text) f = unescX(text);
+      else if (ms) f = shiftFormula(ms.f, +row - ms.r, colNum(col) - ms.c);
+      else return all;
+      return '<c r="' + col + row + '"' + attrs + '><f>' + escX(f) + '</f>';
+    });
+  }
+
+  const COL = (n) => { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
+  const SCORE_ROWS = [22, 159];   // area penilaian harian
+  const SCORE_COLS = [12, 44];    // L .. AR (frekuensi + tanggal 1-31)
+
+  function splitCells(rowBody) {
+    const cells = new Map();
+    for (const m of rowBody.matchAll(/<c r="([A-Z]+)(\d+)"(?=[\s/>])[^>]*?(?:\/>|>[\s\S]*?<\/c>)/g)) cells.set(m[1], m[0]);
+    return cells;
+  }
+  function rowsOf(xml) {
+    const rows = new Map();
+    for (const m of xml.matchAll(/<row r="(\d+)"[^>]*>([\s\S]*?)<\/row>/g)) rows.set(+m[1], m);
+    return rows;
+  }
+  /** Salin isian nilai harian dari lembar sumber ke lembar tujuan (tata letak sama). */
+  function copyScores(srcXml, tgtXml) {
+    const sRows = rowsOf(srcXml), tRows = rowsOf(tgtXml);
+    const pieces = [];
+    let last = 0;
+    for (let r = SCORE_ROWS[0]; r <= SCORE_ROWS[1]; r++) {
+      const tm = tRows.get(r);
+      if (!tm) { if (sRows.get(r)) throw new Error('Baris ' + r + ' tidak ada di lembar tujuan.'); continue; }
+      const sCells = sRows.get(r) ? splitCells(sRows.get(r)[2]) : new Map();
+      let body = tm[2];
+      const tCells = splitCells(body);
+      for (let c = SCORE_COLS[0]; c <= SCORE_COLS[1]; c++) {
+        const col = COL(c), ref = col + r;
+        const tgt = tCells.get(col), src = sCells.get(col);
+        if (!tgt) { if (src) throw new Error('Sel ' + ref + ' tidak ada di lembar tujuan.'); continue; }
+        const ts = (tgt.match(/\ss="(\d+)"/) || [])[1];
+        const sAttr = ts ? ' s="' + ts + '"' : '';
+        const rep = src ? src.replace(/\ss="\d+"/, '').replace('<c r="' + ref + '"', '<c r="' + ref + '"' + sAttr)
+                        : '<c r="' + ref + '"' + sAttr + '/>';
+        body = body.replace(tgt, () => rep);
+      }
+      const start = tm.index + tm[0].indexOf('>') + 1;
+      pieces.push(tgtXml.slice(last, start), body);
+      last = start + tm[2].length;
+    }
+    pieces.push(tgtXml.slice(last));
+    return pieces.join('');
+  }
+
+  /** Daftar lembar penilaian (SPPN) di template beserta bulan aslinya dan nilainya. */
+  async function listSppnSheets(template) {
+    const entries = readZip(template);
+    const map = await sheetMap(entries);
+    const ss = await sharedStrings(entries);
+    const out = [];
+    for (const [name, path] of Object.entries(map)) {
+      const e = entries.find((x) => x.name === path);
+      const xml = await readText(e);
+      if (!/Bulan Pengisian/.test(xml) && !cellXml(xml, 'N163')) continue;
+      if (!cellXml(xml, 'AS54')) continue;
+      const n = (ref) => { const v = parseFloat(cellValue(xml, ref, ss)); return isFinite(v) ? v : null; };
+      const own = (cellValue(xml, 'P21', ss) || '').trim();
+      out.push({
+        sheet: name,
+        month: /^[A-Za-z]+$/.test(own) ? own : name.charAt(0) + name.slice(1).toLowerCase(),
+        year: cellValue(xml, 'AL21', ss),
+        scores: [n('N163'), n('N170'), n('N174'), n('N181')],
+        labels: [cellValue(xml, 'Q163', ss), cellValue(xml, 'Q170', ss), cellValue(xml, 'Q174', ss), cellValue(xml, 'Q181', ss)],
+      });
+    }
+    return out;
+  }
+
+  /** 'yyyy-mm-dd' -> nomor seri tanggal Excel */
+  function excelDate(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if (!m) return null;
+    return (Date.UTC(+m[1], +m[2] - 1, +m[3]) - Date.UTC(1899, 11, 30)) / 86400000;
+  }
+
+  /**
+   * template: ArrayBuffer file xlsx; cells: { "C5": nilai, ... } (nilai: string | number | null)
+   * Mengembalikan Blob xlsx baru. Nilai hasil rumus lama dibuang agar Excel menghitung ulang.
+   */
+  /** Isi MASTER + salin nilai SPPN; kembalikan XML tiap lembar (belum di-zip). */
+  async function buildSheets(template, cells, scoreMap) {
+    const entries = readZip(template);
+    const ws = entries.filter((e) => /^xl\/worksheets\/sheet\d+\.xml$/.test(e.name));
+    const map = await sheetMap(entries);
+    const target = map['MASTER'];
+    if (!target) throw new Error('Lembar MASTER tidak ditemukan.');
+    const orig = {};
+    for (const e of ws) orig[e.name] = await readText(e);
+    const pathOf = (sheet) => { const p = map[sheet]; if (!p || !(p in orig)) throw new Error('Lembar ' + sheet + ' tidak ada.'); return p; };
+    const out = Object.assign({}, orig);
+    for (const [tgt, src] of Object.entries(scoreMap || {})) {
+      if (!src || src === tgt) continue;
+      out[pathOf(tgt)] = copyScores(expandShared(orig[pathOf(src)]), expandShared(orig[pathOf(tgt)]));
+    }
+    for (const [ref, val] of Object.entries(cells)) out[target] = setCell(out[target], ref, val);
+    const byName = {};
+    for (const [name, p] of Object.entries(map)) byName[name] = out[p];
+    return { entries, ws, out, byName, ss: await sharedStrings(entries) };
+  }
+
+  async function fillWorkbook(template, cells, scoreMap) {
+    const b = await buildSheets(template, cells, scoreMap);
+    const wbEntry = b.entries.find((e) => e.name === 'xl/workbook.xml');
+    const wbXml = await readText(wbEntry);
+    for (const e of b.ws) {
+      const xml = b.out[e.name].replace(/(<f\b[^>]*\/>|<f\b[^>]*>[^<]*<\/f>)<v>[^<]*<\/v>/g, '$1');
+      await setText(e, xml);
+    }
+    if (!/fullCalcOnLoad="1"/.test(wbXml)) {
+      const nx = /<calcPr\b/.test(wbXml)
+        ? wbXml.replace(/<calcPr\b/, '<calcPr fullCalcOnLoad="1"')
+        : wbXml.replace('</workbook>', '<calcPr fullCalcOnLoad="1"/></workbook>');
+      await setText(wbEntry, nx);
+    }
+    return writeZip(b.entries);
+  }
+
+  /** Ambil gambar yang tertambat di sel tertentu pada suatu lembar (mis. tanda tangan wali). */
+  async function imageAt(template, sheetName, row, col) {
+    const entries = readZip(template);
+    const map = await sheetMap(entries);
+    const sp = map[sheetName]; if (!sp) return null;
+    const relsName = sp.replace('worksheets/', 'worksheets/_rels/') + '.rels';
+    const re = entries.find((e) => e.name === relsName); if (!re) return null;
+    const rels = await readText(re);
+    const dr = (rels.match(/Target="([^"]*drawings\/drawing\d+\.xml)"/) || [])[1]; if (!dr) return null;
+    const dpath = 'xl/drawings/' + dr.split('/').pop();
+    const dxml = await readText(entries.find((e) => e.name === dpath));
+    const drels = await readText(entries.find((e) => e.name === dpath.replace('drawings/', 'drawings/_rels/') + '.rels'));
+    for (const m of dxml.matchAll(/<xdr:from><xdr:col>(\d+)<\/xdr:col>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>[\s\S]*?r:embed="([^"]+)"/g)) {
+      if (+m[1] === col - 1 && +m[2] === row - 1) {
+        const t = (drels.match(new RegExp('Id="' + m[3] + '"[^>]*Target="([^"]+)"')) || drels.match(new RegExp('Target="([^"]+)"[^>]*Id="' + m[3] + '"')) || [])[1];
+        if (!t) return null;
+        const media = 'xl/media/' + t.split('/').pop();
+        const me = entries.find((e) => e.name === media); if (!me) return null;
+        const bytes = me.method === 0 ? me.data : await inflateRaw(me.data);
+        return { bytes: new Uint8Array(bytes), type: /\.png$/i.test(media) ? 'png' : 'jpg' };
+      }
+    }
+    return null;
+  }
+
+  /** Ambil teks sel-sel tertentu dari satu lembar (mendukung shared strings). */
+  async function readSheetCells(template, sheetName, refs) {
+    const entries = readZip(template);
+    const map = await sheetMap(entries);
+    const e = entries.find((x) => x.name === map[sheetName]);
+    if (!e) return {};
+    const xml = await readText(e);
+    const ssE = entries.find((x) => x.name === 'xl/sharedStrings.xml');
+    let ss = null;
+    const out = {};
+    for (const ref of refs) {
+      const c = cellXml(xml, ref);
+      if (!c) { out[ref] = null; continue; }
+      if (/\st="s"/.test(c)) {
+        if (!ss) {
+          const sx = ssE ? await readText(ssE) : '';
+          ss = [...sx.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) => [...m[1].matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((t) => t[1]).join(''));
+        }
+        const v = (c.match(/<v>([^<]*)<\/v>/) || [])[1];
+        out[ref] = v != null ? ss[+v] : null;
+      } else {
+        const t = c.match(/<t[^>]*>([^<]*)<\/t>/) || c.match(/<v>([^<]*)<\/v>/);
+        out[ref] = t ? t[1] : null;
+      }
+      if (out[ref] != null) out[ref] = out[ref].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+    }
+    return out;
+  }
+
+  const api = { fillWorkbook, buildSheets, imageAt, listSppnSheets, readSheetCells, excelDate, crc32, expandShared, shiftFormula };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.XlsxFill = api;
+})(typeof self !== 'undefined' ? self : this);
+</script>
+
+<script>
+/* Penghitung rumus Excel kecil (subset fungsi yang dipakai template Rutan). */
+(function (root) {
+  'use strict';
+  const ERR = (e) => ({ err: e });
+  const isErr = (v) => v && typeof v === 'object' && 'err' in v;
+  const isRange = (v) => v && typeof v === 'object' && v.range;
+  const isArr = (v) => Array.isArray(v);
+  const colNum = (s) => { let n = 0; for (const ch of s) n = n * 26 + (ch.charCodeAt(0) - 64); return n; };
+  const colStr = (n) => { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
+  const unesc = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+
+  // ------------------------------------------------------------ lembar & sel
+  function parseSheet(xml, ss) {
+    const cells = new Map();
+    const shared = {};
+    const re = /<c r="([A-Z]+)(\d+)"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+    let m;
+    while ((m = re.exec(xml))) {
+      const col = colNum(m[1]), row = +m[2], attrs = m[3], body = m[4] || '';
+      const t = (attrs.match(/\st="([^"]+)"/) || [])[1];
+      const cell = { r: row, c: col };
+      const fm = body.match(/<f([^>]*)\/>|<f([^>]*)>([\s\S]*?)<\/f>/);
+      if (fm) {
+        const fa = fm[1] || fm[2] || ''; const ftext = fm[3] != null ? unesc(fm[3]) : null;
+        const si = (fa.match(/\ssi="(\d+)"/) || [])[1];
+        if (/t="shared"/.test(fa)) {
+          if (ftext != null && ftext !== '') { shared[si] = { f: ftext, r: row, c: col }; cell.f = ftext; }
+          else cell.si = si;
+        } else if (ftext != null) cell.f = ftext;
+      }
+      if (cell.f == null && cell.si == null) {
+        if (t === 's') { const v = (body.match(/<v>([^<]*)<\/v>/) || [])[1]; cell.v = v != null ? ss[+v] : ''; }
+        else if (t === 'inlineStr') { cell.v = [...body.matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((x) => unesc(x[1])).join(''); }
+        else if (t === 'str') { const v = (body.match(/<v>([^<]*)<\/v>/) || [])[1]; cell.v = v != null ? unesc(v) : ''; }
+        else if (t === 'b') { cell.v = (body.match(/<v>([^<]*)<\/v>/) || [])[1] === '1'; }
+        else if (t === 'e') { cell.v = ERR((body.match(/<v>([^<]*)<\/v>/) || [])[1]); }
+        else { const v = (body.match(/<v>([^<]*)<\/v>/) || [])[1]; if (v != null && v !== '') cell.v = parseFloat(v); }
+      }
+      cells.set(row * 16384 + col, cell);
+    }
+    for (const cell of cells.values()) {
+      if (cell.si != null && shared[cell.si]) {
+        const s = shared[cell.si];
+        cell.f = shiftFormula(s.f, cell.r - s.r, cell.c - s.c);
+      }
+    }
+    return cells;
+  }
+
+  // ------------------------------------------------------------ tokenizer
+  const REF = /^(?:('(?:[^']|'')+'|[A-Za-z_][A-Za-z0-9_\.]*)!)?(\$?)([A-Z]{1,3})(\$?)(\d+)(?::(\$?)([A-Z]{1,3})(\$?)(\d+))?(?![A-Za-z0-9_(])/;
+  function tokenize(f) {
+    const toks = []; let i = 0;
+    while (i < f.length) {
+      const ch = f[i];
+      if (ch === ' ' || ch === '\n' || ch === '\r') { i++; continue; }
+      if (ch === '"') {
+        let j = i + 1, s = '';
+        while (j < f.length) { if (f[j] === '"') { if (f[j + 1] === '"') { s += '"'; j += 2; continue; } break; } s += f[j++]; }
+        toks.push({ t: 'str', v: s }); i = j + 1; continue;
+      }
+      if (ch === '#') { const m = f.slice(i).match(/^#(N\/A|REF!|VALUE!|DIV\/0!|NAME\?|NUM!|NULL!)/); if (m) { toks.push({ t: 'err', v: m[0] }); i += m[0].length; continue; } }
+      const rm = f.slice(i).match(REF);
+      if (rm && (i === 0 || !/[A-Za-z0-9_]/.test(f[i - 1]))) {
+        toks.push({ t: 'ref', sheet: rm[1] ? rm[1].replace(/^'|'$/g, '').replace(/''/g, "'") : null, raw: rm[0],
+          a1: { cabs: !!rm[2], c: colNum(rm[3]), rabs: !!rm[4], r: +rm[5] },
+          a2: rm[7] ? { cabs: !!rm[6], c: colNum(rm[7]), rabs: !!rm[8], r: +rm[9] } : null });
+        i += rm[0].length; continue;
+      }
+      const nm = f.slice(i).match(/^\d+(\.\d+)?([eE][+-]?\d+)?/);
+      if (nm) { toks.push({ t: 'num', v: parseFloat(nm[0]) }); i += nm[0].length; continue; }
+      const fm = f.slice(i).match(/^(_xlfn\.)?([A-Za-z][A-Za-z0-9\.]*)\(/);
+      if (fm) { toks.push({ t: 'fn', v: fm[2].toUpperCase() }); i += fm[0].length; continue; }
+      const bm = f.slice(i).match(/^(TRUE|FALSE)(?![A-Za-z0-9_(])/i);
+      if (bm) { toks.push({ t: 'bool', v: bm[1].toUpperCase() === 'TRUE' }); i += bm[0].length; continue; }
+      const op = f.slice(i, i + 2);
+      if (op === '<>' || op === '<=' || op === '>=') { toks.push({ t: 'op', v: op }); i += 2; continue; }
+      if ('+-*/^&=<>%'.includes(ch)) { toks.push({ t: 'op', v: ch }); i++; continue; }
+      if ('(),;{}'.includes(ch)) { toks.push({ t: ch }); i++; continue; }
+      throw new Error('Token tak dikenal: ' + f.slice(i, i + 15) + ' dalam ' + f);
+    }
+    return toks;
+  }
+  function shiftFormula(f, dr, dc) {
+    let out = '', i = 0, inStr = false;
+    while (i < f.length) {
+      const ch = f[i];
+      if (ch === '"') { inStr = !inStr; out += ch; i++; continue; }
+      if (!inStr) {
+        const rm = f.slice(i).match(REF);
+        if (rm && (i === 0 || !/[A-Za-z0-9_]/.test(f[i - 1]))) {
+          const sh = (cabs, c, rabs, r) => (cabs ? '$' : '') + colStr(cabs ? colNum(c) : colNum(c) + dc) + (rabs ? '$' : '') + (rabs ? +r : +r + dr);
+          let s = (rm[1] ? rm[1] + '!' : '') + sh(rm[2], rm[3], rm[4], rm[5]);
+          if (rm[7]) s += ':' + sh(rm[6], rm[7], rm[8], rm[9]);
+          out += s; i += rm[0].length; continue;
+        }
+        const fm = f.slice(i).match(/^[A-Za-z_][A-Za-z0-9_\.]*\(/);
+        if (fm) { out += fm[0]; i += fm[0].length; continue; }
+      }
+      out += ch; i++;
+    }
+    return out;
+  }
+
+  // ------------------------------------------------------------ parser (Pratt)
+  function parse(toks) {
+    let p = 0;
+    const peek = () => toks[p], next = () => toks[p++];
+    const PREC = { '=': 1, '<>': 1, '<': 1, '>': 1, '<=': 1, '>=': 1, '&': 2, '+': 3, '-': 3, '*': 4, '/': 4, '^': 5 };
+    function primary() {
+      const t = next();
+      if (!t) throw new Error('rumus terpotong');
+      if (t.t === 'num' || t.t === 'str' || t.t === 'bool') return { k: 'lit', v: t.v };
+      if (t.t === 'err') return { k: 'lit', v: ERR(t.v) };
+      if (t.t === 'ref') return { k: 'ref', tok: t };
+      if (t.t === 'op' && (t.v === '-' || t.v === '+')) { const e = expr(5); return t.v === '-' ? { k: 'neg', e } : e; }
+      if (t.t === '(') { const e = expr(0); next(); return e; }
+      if (t.t === 'fn') {
+        const args = [];
+        if (peek() && peek().t === ')') { next(); return { k: 'fn', name: t.v, args }; }
+        while (true) {
+          if (peek() && (peek().t === ',' || peek().t === ')')) args.push({ k: 'lit', v: null });
+          else args.push(expr(0));
+          const s = next();
+          if (s.t === ')') break;
+        }
+        return { k: 'fn', name: t.v, args };
+      }
+      if (t.t === '{') {
+        const rows = [[]];
+        while (true) {
+          let neg = false; let x = next();
+          if (x.t === 'op' && x.v === '-') { neg = true; x = next(); }
+          rows[rows.length - 1].push(x.t === 'num' ? (neg ? -x.v : x.v) : x.v);
+          const s = next();
+          if (s.t === '}') break;
+          if (s.t === ';') rows.push([]);
+        }
+        return { k: 'lit', v: rows };
+      }
+      throw new Error('Sintaks tak dikenal: ' + JSON.stringify(t));
+    }
+    function expr(minp) {
+      let left = primary();
+      while (true) {
+        const t = peek();
+        if (t && t.t === 'op' && t.v === '%') { next(); left = { k: 'pct', e: left }; continue; }
+        if (!t || t.t !== 'op' || !(t.v in PREC) || PREC[t.v] <= minp) break;
+        next();
+        const right = expr(PREC[t.v]);
+        left = { k: 'bin', op: t.v, a: left, b: right };
+      }
+      return left;
+    }
+    const e = expr(0);
+    if (p < toks.length) throw new Error('sisa token');
+    return e;
+  }
+
+  // ------------------------------------------------------------ nilai bantu
+  const EPOCH = Date.UTC(1899, 11, 30);
+  const serial = (y, m, d) => (Date.UTC(y, m - 1, d) - EPOCH) / 86400000;
+  const ymd = (n) => { const d = new Date(EPOCH + Math.floor(n) * 86400000); return [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()]; };
+  function toNum(v) {
+    if (isErr(v)) return v;
+    if (v === null || v === undefined || v === '') return 0;
+    if (typeof v === 'number') return v;
+    if (typeof v === 'boolean') return v ? 1 : 0;
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(s)) return parseFloat(s);
+      const dm = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);       // tanggal teks dd/mm/yyyy (setelan Indonesia)
+      if (dm) return serial(+dm[3], +dm[2], +dm[1]);
+      return ERR('#VALUE!');
+    }
+    return ERR('#VALUE!');
+  }
+  function toStr(v) {
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+    if (typeof v === 'number') return numGeneral(v);
+    return String(v);
+  }
+  function numGeneral(v) {
+    if (Number.isInteger(v)) return String(v);
+    let s = v.toPrecision(15); s = String(parseFloat(s));
+    return s;
+  }
+  const toBool = (v) => (typeof v === 'string' ? (v.toUpperCase() === 'TRUE' ? true : v.toUpperCase() === 'FALSE' ? false : ERR('#VALUE!')) : toNum(v) !== 0);
+  function round(x, d) { const f = Math.pow(10, d); const y = Math.abs(x) * f; let r = Math.floor(y + 0.5 + 1e-9); return Math.sign(x) * r / f; }
+  function cmp(a, b) {
+    const ta = a === null || a === undefined ? 'e' : typeof a, tb = b === null || b === undefined ? 'e' : typeof b;
+    if (ta === 'e' && tb === 'e') return 0;
+    if (ta === 'e') a = tb === 'string' ? '' : tb === 'boolean' ? false : 0;
+    if (tb === 'e') b = ta === 'string' ? '' : ta === 'boolean' ? false : 0;
+    const rank = (x) => typeof x === 'number' ? 0 : typeof x === 'string' ? 1 : 2;
+    if (rank(a) !== rank(b)) return rank(a) - rank(b);
+    if (typeof a === 'string') { const x = a.toLowerCase(), y = b.toLowerCase(); return x < y ? -1 : x > y ? 1 : 0; }
+    if (typeof a === 'number') { a = +a.toPrecision(15); b = +b.toPrecision(15); }
+    return a < b ? -1 : a > b ? 1 : 0;
+  }
+
+  // ------------------------------------------------------------ buku kerja
+  function Workbook(sheets) {   // sheets: {name: cellsMap}
+    this.sheets = sheets; this.cache = new Map(); this.ast = new Map(); this.stack = new Set();
+  }
+  Workbook.prototype.cell = function (sheet, r, c) {
+    const key = sheet + '!' + (r * 16384 + c);
+    if (this.cache.has(key)) return this.cache.get(key);
+    const sh = this.sheets[sheet];
+    if (!sh) return ERR('#REF!');
+    const cell = sh.get(r * 16384 + c);
+    let v = null;
+    if (cell) {
+      if (cell.f != null) {
+        if (this.stack.has(key)) return 0;   // rujukan melingkar
+        this.stack.add(key);
+        try {
+          let ast = this.ast.get(cell.f);
+          if (!ast) { ast = parse(tokenize(cell.f)); this.ast.set(cell.f, ast); }
+          v = this.ev(ast, sheet);
+          if (isRange(v)) v = this.cell(v.sheet, v.r1, v.c1);
+          if (isArr(v)) v = v[0][0];
+          if (v === null || v === undefined) v = 0;
+        } catch (e) { v = ERR('#NAME?'); this.lastError = e; }
+        this.stack.delete(key);
+      } else v = cell.v === undefined ? null : cell.v;
+    }
+    this.cache.set(key, v);
+    return v;
+  };
+  Workbook.prototype.vals = function (rg) {   // range -> 2D array
+    const out = [];
+    for (let r = rg.r1; r <= rg.r2; r++) { const row = []; for (let c = rg.c1; c <= rg.c2; c++) row.push(this.cell(rg.sheet, r, c)); out.push(row); }
+    return out;
+  };
+  Workbook.prototype.ev = function (n, sheet) {
+    const self = this;
+    const scalar = (v) => { if (isRange(v)) return v.r1 === v.r2 && v.c1 === v.c2 ? self.cell(v.sheet, v.r1, v.c1) : ERR('#VALUE!'); if (isArr(v)) return v[0][0]; return v; };
+    switch (n.k) {
+      case 'lit': return n.v;
+      case 'ref': {
+        const t = n.tok, sh = t.sheet || sheet;
+        if (!t.a2) return self.cell(sh, t.a1.r, t.a1.c);
+        return { range: true, sheet: sh, r1: Math.min(t.a1.r, t.a2.r), c1: Math.min(t.a1.c, t.a2.c), r2: Math.max(t.a1.r, t.a2.r), c2: Math.max(t.a1.c, t.a2.c) };
+      }
+      case 'neg': { const v = toNum(scalar(this.ev(n.e, sheet))); return isErr(v) ? v : -v; }
+      case 'pct': { const v = toNum(scalar(this.ev(n.e, sheet))); return isErr(v) ? v : v / 100; }
+      case 'bin': {
+        const a = scalar(this.ev(n.a, sheet)), b = scalar(this.ev(n.b, sheet));
+        if (isErr(a)) return a; if (isErr(b)) return b;
+        if (n.op === '&') return toStr(a) + toStr(b);
+        if ('= <> < > <= >='.split(' ').includes(n.op)) {
+          const c = cmp(a, b);
+          return n.op === '=' ? c === 0 : n.op === '<>' ? c !== 0 : n.op === '<' ? c < 0 : n.op === '>' ? c > 0 : n.op === '<=' ? c <= 0 : c >= 0;
+        }
+        const x = toNum(a), y = toNum(b);
+        if (isErr(x)) return x; if (isErr(y)) return y;
+        if (n.op === '+') return x + y; if (n.op === '-') return x - y; if (n.op === '*') return x * y;
+        if (n.op === '/') return y === 0 ? ERR('#DIV/0!') : x / y;
+        if (n.op === '^') return Math.pow(x, y);
+        return ERR('#VALUE!');
+      }
+      case 'fn': return this.fn(n.name, n.args, sheet, scalar);
+    }
+    return ERR('#VALUE!');
+  };
+  Workbook.prototype.fn = function (name, args, sheet, scalar) {
+    const self = this;
+    const A = (i) => args[i] === undefined ? undefined : scalar(self.ev(args[i], sheet));
+    const N = (i) => toNum(A(i));
+    const S = (i) => { const v = A(i); return isErr(v) ? v : toStr(v); };
+    const flat = (v) => isRange(v) ? self.vals(v).flat() : isArr(v) ? v.flat() : [v];
+    const firstErr = (...xs) => xs.find(isErr);
+    switch (name) {
+      case 'IF': { const c = A(0); if (isErr(c)) return c; const b = toBool(c); if (isErr(b)) return b;
+        if (b) return args.length > 1 ? scalar(this.ev(args[1], sheet)) ?? 0 : true;
+        return args.length > 2 ? (scalar(this.ev(args[2], sheet)) ?? 0) : false; }
+      case 'IFERROR': { const v = A(0); return isErr(v) ? A(1) : v; }
+      case 'AND': case 'OR': {
+        let res = name === 'AND';
+        for (const a of args) { const v = this.ev(a, sheet);
+          for (const x of flat(v)) { if (isErr(x)) return x; if (x === null || x === '' || (isRange(v) && typeof x === 'string')) continue;
+            const b = toBool(x); if (isErr(b)) return b; res = name === 'AND' ? res && b : res || b; } }
+        return res; }
+      case 'SUM': { let s = 0; for (const a of args) { const v = this.ev(a, sheet);
+          if (isRange(v) || isArr(v)) { for (const x of flat(v)) { if (isErr(x)) return x; if (typeof x === 'number') s += x; } }
+          else { const x = toNum(v); if (isErr(x)) return x; s += x; } } return s; }
+      case 'TRIM': { const s = S(0); return isErr(s) ? s : s.replace(/ +/g, ' ').trim(); }
+      case 'UPPER': { const s = S(0); return isErr(s) ? s : s.toUpperCase(); }
+      case 'PROPER': { const s = S(0); return isErr(s) ? s : s.toLowerCase().replace(/(^|[^a-zA-ZÀ-ɏ])([a-zà-ɏ])/g, (m, a, b) => a + b.toUpperCase()); }
+      case 'LEN': { const s = S(0); return isErr(s) ? s : s.length; }
+      case 'LEFT': { const s = S(0), n = args.length > 1 ? N(1) : 1; return firstErr(s, n) || s.slice(0, Math.floor(n)); }
+      case 'RIGHT': { const s = S(0), n = args.length > 1 ? N(1) : 1; return firstErr(s, n) || (n <= 0 ? '' : s.slice(-Math.floor(n))); }
+      case 'MID': { const s = S(0), a = N(1), n = N(2); return firstErr(s, a, n) || s.substr(Math.floor(a) - 1, Math.floor(n)); }
+      case 'SUBSTITUTE': { const s = S(0), o = S(1), w = S(2); const e = firstErr(s, o, w); if (e) return e; if (o === '') return s;
+        if (args.length > 3) { const k = N(3); let idx = -1, cnt = 0; while ((idx = s.indexOf(o, idx + 1)) >= 0) { if (++cnt === k) return s.slice(0, idx) + w + s.slice(idx + o.length); } return s; }
+        return s.split(o).join(w); }
+      case 'SEARCH': { const f = S(0), s = S(1), st = args.length > 2 ? N(2) : 1; const e = firstErr(f, s, st); if (e) return e;
+        const i = s.toLowerCase().indexOf(f.toLowerCase(), st - 1); return i < 0 ? ERR('#VALUE!') : i + 1; }
+      case 'VALUE': { const v = A(0); if (isErr(v)) return v; if (typeof v === 'number') return v; const n = toNum(String(v)); return n; }
+      case 'N': { const v = A(0); return typeof v === 'number' ? v : typeof v === 'boolean' ? (v ? 1 : 0) : isErr(v) ? v : 0; }
+      case 'ISNUMBER': { const v = A(0); return typeof v === 'number'; }
+      case 'INT': { const x = N(0); return isErr(x) ? x : Math.floor(x); }
+      case 'MOD': { const a = N(0), b = N(1); const e = firstErr(a, b); if (e) return e; if (b === 0) return ERR('#DIV/0!'); return a - b * Math.floor(a / b); }
+      case 'ROUND': { const x = N(0), d = N(1); return firstErr(x, d) || round(x, d); }
+      case 'FIXED': { const x = N(0), d = args.length > 1 ? N(1) : 2; const e = firstErr(x, d); if (e) return e;
+        const r = round(x, d); const s = Math.abs(r).toFixed(Math.max(0, d)); const [ip, fp] = s.split('.');
+        return (r < 0 ? '-' : '') + ip.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fp ? '.' + fp : ''); }
+      case 'DATE': { const y = N(0), m = N(1), d = N(2); const e = firstErr(y, m, d); if (e) return e;
+        return (Date.UTC(Math.floor(y), Math.floor(m) - 1, Math.floor(d)) - EPOCH) / 86400000; }
+      case 'YEAR': { const x = N(0); return isErr(x) ? x : ymd(x)[0]; }
+      case 'MONTH': { const x = N(0); return isErr(x) ? x : ymd(x)[1]; }
+      case 'DAY': { const x = N(0); return isErr(x) ? x : ymd(x)[2]; }
+      case 'EDATE': { const x = N(0), m = N(1); const e = firstErr(x, m); if (e) return e;
+        const [y, mo, d] = ymd(x); const t = new Date(Date.UTC(y, mo - 1 + Math.trunc(m), 1));
+        const last = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate();
+        return serial(t.getUTCFullYear(), t.getUTCMonth() + 1, Math.min(d, last)); }
+      case 'EOMONTH': { const x = N(0), m = N(1); const e = firstErr(x, m); if (e) return e;
+        const [y, mo] = ymd(x); return (Date.UTC(y, mo - 1 + Math.trunc(m) + 1, 0) - EPOCH) / 86400000; }
+      case 'DATEDIF': { const a = N(0), b = N(1), u = S(2); const e = firstErr(a, b, u); if (e) return e; if (a > b) return ERR('#NUM!');
+        const [y1, m1, d1] = ymd(a), [y2, m2, d2] = ymd(b); const U = u.toUpperCase();
+        if (U === 'D') return Math.floor(b) - Math.floor(a);
+        let months = (y2 - y1) * 12 + (m2 - m1); if (d2 < d1) months--;
+        if (U === 'M') return months; if (U === 'Y') return Math.floor(months / 12); if (U === 'YM') return months % 12;
+        return ERR('#NUM!'); }
+      case 'INDEX': { const src = this.ev(args[0], sheet); const r = N(1); const c = args.length > 2 ? N(2) : 1; const e = firstErr(r, c); if (e) return e;
+        if (isRange(src)) { const rr = src.r1 + (src.r2 === src.r1 && args.length === 2 ? 0 : r - 1); const cc = src.c1 + (src.r2 === src.r1 && args.length === 2 ? r - 1 : c - 1);
+          if (rr > src.r2 || cc > src.c2) return ERR('#REF!'); return self.cell(src.sheet, rr, cc); }
+        if (isArr(src)) { if (src.length === 1 && args.length === 2) return src[0][r - 1] ?? ERR('#REF!'); return (src[r - 1] || [])[c - 1] ?? ERR('#REF!'); }
+        return r === 1 ? src : ERR('#REF!'); }
+      case 'MATCH': { const v = A(0); if (isErr(v)) return v; const arr = flat(this.ev(args[1], sheet)); const t = args.length > 2 ? N(2) : 1;
+        if (t === 0) { const i = arr.findIndex((x) => x !== null && cmp(x, v) === 0); return i < 0 ? ERR('#N/A') : i + 1; }
+        let best = -1; for (let i = 0; i < arr.length; i++) { if (arr[i] === null) continue; if (cmp(arr[i], v) <= 0) best = i; else break; }
+        return best < 0 ? ERR('#N/A') : best + 1; }
+      case 'VLOOKUP': { const v = A(0); if (isErr(v)) return v; const rg = this.ev(args[1], sheet); const col = N(2); const approx = args.length > 3 ? toBool(A(3)) : true;
+        const rows = isRange(rg) ? self.vals(rg) : rg;
+        if (!approx) { for (const row of rows) if (row[0] !== null && cmp(row[0], v) === 0) return row[col - 1] ?? 0; return ERR('#N/A'); }
+        let hit = null; for (const row of rows) { if (row[0] === null) continue; if (cmp(row[0], v) <= 0) hit = row; else break; }
+        return hit ? (hit[col - 1] ?? 0) : ERR('#N/A'); }
+    }
+    return ERR('#NAME?');
+  };
+
+  // ------------------------------------------------------------ format tampilan
+  function fmtNum(v, nf) {
+    if (v === null || v === undefined || v === '') return '';
+    if (isErr(v)) return v.err;
+    if (typeof v === 'string') return v;
+    if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+    if (!nf || nf === 'General') {
+      if (Number.isInteger(v)) return String(v);
+      let s = String(parseFloat(v.toPrecision(10)));
+      return s.replace('.', ',');
+    }
+    const m = /^0(?:\.(0+))?$/.exec(nf);
+    if (m) { const d = (m[1] || '').length; const r = round(v, d); return r.toFixed(d).replace('.', ','); }
+    if (/^"Rp "#,##0/.test(nf)) return 'Rp ' + Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    if (/dd\/mm\/yyyy/.test(nf)) { const [y, mo, d] = ymd(v); return String(d).padStart(2, '0') + '/' + String(mo).padStart(2, '0') + '/' + y; }
+    return String(v);
+  }
+
+  const api = { parseSheet, Workbook, tokenize, parse, shiftFormula, fmtNum, isErr };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.XlCalc = api;
+})(typeof self !== 'undefined' ? self : this);
+
+/* Menyusun PDF akhir: latar cetakan Excel + isian WBP. */
+(function (root) {
+  'use strict';
+  function colNum(s) { let n = 0; for (const ch of s) n = n * 26 + ch.charCodeAt(0) - 64; return n; }
+
+  function checkOps(L, d, upm, x, y, size, gray) {
+    const s = size / upm, ops = [L.pushGraphicsState(), L.setFillingGrayscaleColor(gray), L.concatTransformationMatrix(s, 0, 0, s, x, y)];
+    const toks = d.match(/[MLHVCQZ]|-?\d*\.?\d+/gi); let i = 0, cmd = '', cx = 0, cy = 0;
+    const num = () => parseFloat(toks[i++]);
+    while (i < toks.length) {
+      if (/[A-Za-z]/.test(toks[i])) cmd = toks[i++].toUpperCase();
+      if (cmd === 'M') { cx = num(); cy = num(); ops.push(L.moveTo(cx, cy)); cmd = 'L'; }
+      else if (cmd === 'L') { cx = num(); cy = num(); ops.push(L.lineTo(cx, cy)); }
+      else if (cmd === 'H') { cx = num(); ops.push(L.lineTo(cx, cy)); }
+      else if (cmd === 'V') { cy = num(); ops.push(L.lineTo(cx, cy)); }
+      else if (cmd === 'Q') { const a = num(), b = num(); cx = num(); cy = num(); ops.push(L.appendQuadraticCurve(a, b, cx, cy)); }
+      else if (cmd === 'C') { const a = num(), b = num(), c = num(), e = num(); cx = num(); cy = num(); ops.push(L.appendBezierCurve(a, b, c, e, cx, cy)); }
+      else if (cmd === 'Z') { ops.push(L.closePath()); cmd = ''; }
+      else i++;
+    }
+    ops.push(L.fill(), L.popGraphicsState());
+    return ops;
+  }
+
+  const CP1252 = new Set([0x20AC,0x201A,0x0192,0x201E,0x2026,0x2020,0x2021,0x02C6,0x2030,0x0160,0x2039,0x0152,0x017D,0x2018,0x2019,0x201C,0x201D,0x2022,0x2013,0x2014,0x02DC,0x2122,0x0161,0x203A,0x0153,0x017E,0x0178]);
+  function winAnsi(t) {
+    let out = '';
+    for (const ch of String(t)) {
+      const c = ch.codePointAt(0);
+      if ((c >= 0x20 && c <= 0x7E) || (c >= 0xA0 && c <= 0xFF) || CP1252.has(c)) { out += ch; continue; }
+      if (c === 0x09 || c === 0x0A || c === 0x0D) { out += ' '; continue; }
+      const base = ch.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+      out += [...base].every((b) => { const d = b.codePointAt(0); return (d >= 0x20 && d <= 0x7E) || (d >= 0xA0 && d <= 0xFF); }) && base ? base : '?';
+    }
+    return out;
+  }
+
+  function wrapLines(text, font, size, maxW) {
+    const words = text.split(' '); const lines = []; let cur = '';
+    for (const w of words) {
+      const t = cur ? cur + ' ' + w : w;
+      if (cur && font.widthOfTextAtSize(t, size) > maxW) { lines.push(cur); cur = w; } else cur = t;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  /**
+   * opts: { PDFLib, latar (Uint8Array), layout, check: {d, upm},
+   *         wb (XlCalc.Workbook), fmt (XlCalc.fmtNum), sig: {bytes, type, exact} | null, groups: [[pageIdx...], ...] }
+   * Mengembalikan array Uint8Array, satu per grup halaman.
+   */
+  async function renderPdfs(o) {
+    const L = o.PDFLib;
+    const src = await L.PDFDocument.load(o.latar);
+    const outs = [];
+    for (const group of o.groups) {
+      const doc = await L.PDFDocument.create();
+      const STD = { sans: 'Helvetica', 'sans-b': 'HelveticaBold', 'sans-i': 'HelveticaOblique', 'sans-bi': 'HelveticaBoldOblique',
+        serif: 'TimesRoman', 'serif-b': 'TimesRomanBold', 'serif-i': 'TimesRomanItalic', 'serif-bi': 'TimesRomanBoldItalic',
+        calibri: 'Helvetica', 'calibri-b': 'HelveticaBold' };
+      const fonts = {};
+      const getFont = async (k) => fonts[k] || (fonts[k] = await doc.embedFont(L.StandardFonts[STD[k] || 'Helvetica']));
+      const pages = await doc.copyPages(src, group);
+      let sigImg = null;
+      if (o.sig) sigImg = o.sig.type === 'png' ? await doc.embedPng(o.sig.bytes) : await doc.embedJpg(o.sig.bytes);
+      for (let gi = 0; gi < group.length; gi++) {
+        const page = doc.addPage(pages[gi]);
+        const P = o.layout.pages[group[gi]];
+        for (const it of P.items) {
+          const m = it.ref.match(/([A-Z]+)(\d+)/);
+          const v = o.wb.cell(P.sheet, +m[2], colNum(m[1]));
+          let text = o.fmt(v, it.nf);
+          if (text === '' || text == null) continue;
+          if (it.font !== 'check') text = winAnsi(text);
+          if (it.font === 'check') {
+            if (text === 'a') page.pushOperators(...checkOps(L, o.check.d, o.check.upm, it.x, it.y, it.size, it.color || 0));
+            continue;
+          }
+          const font = await getFont(it.font);
+          const size = it.size;
+          const isNum = typeof v === 'number';
+          const w = (t) => font.widthOfTextAtSize(t, size);
+          let lines = [text];
+          const avail = (it.R - it.L) - 2 * (P.padR || 1.5);
+          if (it.wrap && w(text) > avail + 0.5) lines = wrapLines(text, font, size, avail);
+          const lead = it.lead || size * 1.17;
+          let y0 = it.y;
+          if (lines.length > 1 && !it.lead) {
+            if (it.va === 'bottom') y0 = it.y + (lines.length - 1) * lead;
+            else if (it.va === 'center') y0 = it.y + (lines.length - 1) * lead / 2;
+          }
+          const al = it.al;
+          lines.forEach((ln, i) => {
+            const lw = w(ln);
+            let x;
+            const rightX = (it.sample !== undefined && (al === 'right' || (al === 'general' && it.sampleNum))) ? it.xr : it.R - (P.padR || 1.5);
+            const centerX = (it.sample !== undefined && (al === 'center' || al === 'centerContinuous')) ? it.xc : (it.L + it.R) / 2;
+            if (al === 'right' || (al === 'general' && isNum)) x = rightX - lw;
+            else if (al === 'center' || al === 'centerContinuous') x = centerX - lw / 2;
+            else x = it.x;
+            page.drawText(ln, { x, y: y0 - i * lead, size, font, color: L.grayscale(it.color || 0) });
+          });
+        }
+        if (sigImg) for (const [x, y, w, h] of P.wali_sig || []) {
+          if (o.sig.exact) page.drawImage(sigImg, { x, y, width: w, height: h });
+          else {
+            const s = Math.min(w * 1.6 / sigImg.width, h / sigImg.height);
+            const dw = sigImg.width * s, dh = sigImg.height * s;
+            page.drawImage(sigImg, { x: x + (w - dw) / 2, y: y + (h - dh) / 2, width: dw, height: dh });
+          }
+        }
+      }
+      outs.push(await doc.save());
+    }
+    return outs;
+  }
+  const api = { renderPdfs, winAnsi };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.PdfRender = api;
+})(typeof self !== 'undefined' ? self : this);
+
+/* Perekat: template + isian -> Excel dan PDF (LPP+SPPN, Daftar F). Butuh XlsxFill, XlCalc, PdfRender, PDFLib. */
+(function (root) {
+  'use strict';
+  const un = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(+d)).replace(/&#x([0-9a-f]+);/gi, (m, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&amp;/g, '&');
+  async function makePdfs(o) {
+    const F = o.XlsxFill || root.XlsxFill, X = o.XlCalc || root.XlCalc, R = o.PdfRender || root.PdfRender;
+    const b = await F.buildSheets(o.template, o.cells, o.scoreMap);
+    const ss = b.ss.map(un);
+    const sheets = {};
+    for (const [name, xml] of Object.entries(b.byName)) sheets[name] = X.parseSheet(xml, ss);
+    const wb = new X.Workbook(sheets);
+    const outs = await R.renderPdfs({ PDFLib: o.PDFLib, latar: o.assets.latar, layout: o.assets.layout, check: o.assets.check,
+      wb, fmt: X.fmtNum, sig: o.sig || null, groups: [[...Array(18).keys()], [18]] });
+    return { lppSppn: outs[0], df: outs[1], wb };
+  }
+  const api = { makePdfs };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Berkas = api;
+})(typeof self !== 'undefined' ? self : this);
+</script>
+
+<script>
+'use strict';
+const DATA = { map: {"nama": "C5", "noreg": "C6", "nik": "C7", "tmp_lahir": "C8", "tgl_lahir": "C9", "jk": "C10", "agama": "C11", "pend": "C12", "kerja": "C13", "kawin": "C14", "alamat": "C15", "pj_nama": "C18", "pj_umur": "C19", "pj_hub": "C20", "pj_kerja": "C21", "pj_alamat": "C22", "pj_hp": "C23", "lurah": "C24", "no_put": "C27", "tgl_put": "C28", "pidana": "C29", "kategori": "C30", "th": "C31", "bl": "C32", "hr": "C33", "denda": "C34", "subsider": "C35", "residivis": "C36", "tgl_tahan": "C37", "tgl_awal": "C38", "rem_bl": "C39", "rem_hr": "C40", "o_t13": "C41", "o_t12": "C42", "o_t23": "C43", "o_eksp": "C44", "p2_no": "C46", "p2_pidana": "C47", "p2_lama": "C48", "p2_denda": "C49", "p2_subsider": "C50", "p2_eksp": "C51", "ayah_nama": "C55", "ayah_kerja": "C56", "ayah_alamat": "C57", "ibu_nama": "C58", "ibu_kerja": "C59", "ibu_alamat": "C60", "ps_nama": "C62", "ps_umur": "C63", "ps_agama": "C64", "ps_pend": "C65", "ps_kerja": "C66", "ps_alamat": "C67", "anak1_nama": "C70", "anak1_lp": "D70", "anak1_umur": "E70", "anak1_kerja": "F70", "anak1_ket": "G70", "anak2_nama": "C71", "anak2_lp": "D71", "anak2_umur": "E71", "anak2_kerja": "F71", "anak2_ket": "G71", "anak3_nama": "C72", "anak3_lp": "D72", "anak3_umur": "E72", "anak3_kerja": "F72", "anak3_ket": "G72", "anak4_nama": "C73", "anak4_lp": "D73", "anak4_umur": "E73", "anak4_kerja": "F73", "anak4_ket": "G73", "anak5_nama": "C74", "anak5_lp": "D74", "anak5_umur": "E74", "anak5_kerja": "F74", "anak5_ket": "G74", "sdr1_nama": "C77", "sdr1_lp": "D77", "sdr1_umur": "E77", "sdr1_kerja": "F77", "sdr1_ket": "G77", "sdr2_nama": "C78", "sdr2_lp": "D78", "sdr2_umur": "E78", "sdr2_kerja": "F78", "sdr2_ket": "G78", "sdr3_nama": "C79", "sdr3_lp": "D79", "sdr3_umur": "E79", "sdr3_kerja": "F79", "sdr3_ket": "G79", "sdr4_nama": "C80", "sdr4_lp": "D80", "sdr4_umur": "E80", "sdr4_kerja": "F80", "sdr4_ket": "G80", "sdr5_nama": "C81", "sdr5_lp": "D81", "sdr5_umur": "E81", "sdr5_kerja": "F81", "sdr5_ket": "G81", "sdr6_nama": "C82", "sdr6_lp": "D82", "sdr6_umur": "E82", "sdr6_kerja": "F82", "sdr6_ket": "G82", "sdr7_nama": "C83", "sdr7_lp": "D83", "sdr7_umur": "E83", "sdr7_kerja": "F83", "sdr7_ket": "G83", "sd_th": "C86", "smp_th": "C87", "sma_th": "C88", "d3_th": "C89", "s1_th": "C90", "s2_th": "C91", "tdk_sekolah": "C93", "tdk_tamat": "C94", "baca": "C95", "hitung": "C96", "bahasa": "C97", "tgl_surat": "C100", "wali": "C101"}, cats: [], walis: [] };
+const MAP = DATA.map;
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+// ---------------------------------------------------------------- definisi formulir
+const L = (opts) => ({ type: 'select', opts });
+const SECTIONS = [
+  { t: 'Data warga binaan', f: [
+    ['nama','Nama lengkap',{req:1}], ['noreg','No. Register',{req:1}],
+    ['nik','NIK / No. KTP',{req:1, hint:'16 digit'}], ['tmp_lahir','Tempat lahir',{req:1}],
+    ['tgl_lahir','Tanggal lahir',{req:1,type:'date'}], ['jk','Jenis kelamin',{req:1, ...L(['Laki-laki','Perempuan'])}],
+    ['agama','Agama',{req:1, ...L(['Islam','Kristen Protestan','Kristen Katolik','Hindu','Buddha','Konghucu','Lainnya'])}],
+    ['pend','Pendidikan terakhir',{req:1, ...L(['Tidak sekolah','SD/sederajat','SMP/sederajat','SMA/sederajat','Diploma','Sarjana','Pascasarjana'])}],
+    ['kerja','Pekerjaan',{req:1}], ['kawin','Status perkawinan',{req:1, ...L(['BELUM MENIKAH','MENIKAH','CERAI','CERAI HIDUP','CERAI MATI'])}],
+    ['alamat','Alamat lengkap',{req:1, wide:1}],
+  ]},
+  { t: 'Penjamin', f: [
+    ['pj_nama','Nama penjamin',{req:1}], ['pj_umur','Umur penjamin (tahun)',{req:1,type:'number'}],
+    ['pj_hub','Hubungan dengan WBP',{req:1, list:['AYAH KANDUNG','IBU KANDUNG','ISTRI','SUAMI','ANAK KANDUNG','SAUDARA KANDUNG','PAMAN','BIBI','KAKEK','NENEK']}],
+    ['pj_kerja','Pekerjaan penjamin',{req:1}], ['pj_alamat','Alamat penjamin',{req:1, wide:1}],
+    ['pj_hp','No. HP penjamin',{req:1}], ['lurah','Kepala Desa / Lurah',{hint:'boleh kosong'}],
+  ]},
+  { t: 'Putusan & masa pidana', f: [
+    ['no_put','Nomor putusan (terakhir)',{req:1}], ['tgl_put','Tanggal putusan',{req:1,type:'date'}],
+    ['pidana','Tindak pidana / pasal',{req:1, wide:1}], ['kategori','Kategori tindak pidana (SPPN)',{req:1, ...L(DATA.cats)}],
+    ['th','Lama pidana – tahun',{req:1,type:'number'}], ['bl','Lama pidana – bulan',{type:'number'}],
+    ['hr','Lama pidana – hari',{type:'number'}], ['denda','Denda (Rp)',{type:'number', hint:'kosongkan bila tidak ada'}],
+    ['subsider','Subsider (bulan)',{type:'number'}], ['residivis','Pengulangan tindak pidana (kali)',{type:'number'}],
+    ['tgl_tahan','Ditahan sejak tanggal',{req:1,type:'date'}], ['tgl_awal','Tanggal awal perhitungan',{type:'date', hint:'kosongkan = sama dengan tgl ditahan'}],
+    ['rem_bl','Remisi – bulan',{type:'number'}], ['rem_hr','Remisi – hari',{type:'number'}],
+    ['o_t13','1/3 masa pidana',{type:'date'}], ['o_t12','1/2 masa pidana',{type:'date'}],
+    ['o_t23','2/3 masa pidana',{type:'date'}], ['o_eksp','Ekspirasi',{type:'date'}],
+  ], more: { t: 'Putusan lain (bila lebih dari 1 putusan)', f: [
+    ['p2_no','Nomor & tanggal putusan',{}], ['p2_pidana','Tindak pidana',{}], ['p2_lama','Lama pidana',{hint:'contoh: 1 Tahun 2 Bulan 0 Hari'}],
+    ['p2_denda','Denda',{}], ['p2_subsider','Subsider',{}], ['p2_eksp','Ekspirasi',{}],
+  ]}},
+  { t: 'Keluarga', f: [
+    ['ayah_nama','Nama ayah',{}], ['ayah_kerja','Pekerjaan ayah',{}], ['ayah_alamat','Alamat ayah',{wide:1}],
+    ['ibu_nama','Nama ibu',{}], ['ibu_kerja','Pekerjaan ibu',{}], ['ibu_alamat','Alamat ibu',{wide:1}],
+    ['ps_nama','Nama istri / suami',{}], ['ps_umur','Umur / tgl lahir istri / suami',{}], ['ps_agama','Agama istri / suami',{}],
+    ['ps_pend','Pendidikan istri / suami',{}], ['ps_kerja','Pekerjaan istri / suami',{}], ['ps_alamat','Alamat istri / suami',{wide:1}],
+  ], tables: [['anak','Anak',5], ['sdr','Saudara kandung',7]] },
+  { t: 'Riwayat pendidikan', f: [
+    ['sd_th','SD tamat tahun',{type:'number'}], ['smp_th','SMP tamat tahun',{type:'number'}], ['sma_th','SMA tamat tahun',{type:'number'}],
+    ['d3_th','D III tamat tahun',{type:'number'}], ['s1_th','S1 tamat tahun',{type:'number'}], ['s2_th','S2 tamat tahun',{type:'number'}],
+  ], more: { t: 'Bagi yang tidak tamat SD', f: [
+    ['tdk_sekolah','Tidak pernah bersekolah',{}], ['tdk_tamat','Tidak tamat SD',{}], ['baca','Kemampuan baca dan tulis',{}],
+    ['hitung','Kemampuan berhitung',{}], ['bahasa','Kemampuan berbahasa Indonesia',{}],
+  ]}},
+  { t: 'Surat', f: [
+    ['tgl_surat','Tanggal surat',{req:1,type:'date', hint:'bawaan: akhir bulan lalu'}],
+    ['wali','Wali Pemasyarakatan',{req:1, ...L(DATA.walis.map(w => w[0]))}],
+  ]},
+];
+const TYPES = {}; const REQ = [];
+for (const s of SECTIONS) for (const grp of [s.f, s.more ? s.more.f : []]) for (const [k,, o] of grp) { TYPES[k] = o.type || 'text'; if (o.req) REQ.push(k); }
+for (const p of ['anak','sdr']) for (let i = 1; i <= 7; i++) { TYPES[p+i+'_umur'] = 'number'; }
+
+// ---------------------------------------------------------------- status
+const $ = (id) => document.getElementById(id);
+const V = {};      // nilai
+const SRC = {};    // asal: sdp | ai | cek | saran
+const NOTE = {};   // keterangan asal
+let template = null, sppnSheets = [], files = [];
+
+function esc(s) { return String(s ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// ---------------------------------------------------------------- render formulir
+function inputHtml(k, label, o) {
+  const id = 'f_' + k; const v = V[k] ?? '';
+  let ctl;
+  if (o.type === 'select') {
+    const opts = o.opts.slice();
+    if (v && !opts.includes(v)) opts.unshift(v);
+    ctl = `<select id="${id}" data-k="${k}"><option value=""></option>${opts.map(x => `<option${x === v ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+  } else {
+    const t = o.type === 'date' ? 'date' : o.type === 'number' ? 'number' : 'text';
+    const dl = o.list ? ` list="dl_${k}"` : '';
+    ctl = `<input id="${id}" data-k="${k}" type="${t}" value="${esc(v)}"${dl}${t === 'number' ? ' min="0" step="1"' : ''}>` +
+      (o.list ? `<datalist id="dl_${k}">${o.list.map(x => `<option value="${esc(x)}">`).join('')}</datalist>` : '');
+  }
+  return `<div class="f${o.wide ? ' wide' : ''}" id="w_${k}"><label for="${id}">${esc(label)}${o.req ? '<span class="req">*</span>' : ''}<span class="pill-slot"></span></label>${ctl}<div class="src" id="n_${k}">${esc(o.hint || '')}</div></div>`;
+}
+function tableHtml(p, title, n) {
+  let rows = '';
+  for (let i = 1; i <= n; i++) {
+    const g = (c) => esc(V[`${p}${i}_${c}`] ?? '');
+    rows += `<tr><td class="c-no">${i}</td>
+      <td><input data-k="${p}${i}_nama" aria-label="${title} ${i} nama" value="${g('nama')}"></td>
+      <td class="c-lp"><select data-k="${p}${i}_lp" aria-label="${title} ${i} L/P"><option></option><option${g('lp')==='L'?' selected':''}>L</option><option${g('lp')==='P'?' selected':''}>P</option></select></td>
+      <td class="c-um"><input data-k="${p}${i}_umur" type="number" min="0" aria-label="${title} ${i} umur" value="${g('umur')}"></td>
+      <td><input data-k="${p}${i}_kerja" aria-label="${title} ${i} pekerjaan" value="${g('kerja')}"></td>
+      <td><input data-k="${p}${i}_ket" aria-label="${title} ${i} keterangan" value="${g('ket')}"></td></tr>`;
+  }
+  const raw = NOTE['raw_' + p] ? `<div class="raw">Tertulis di SDP: <b>${esc(NOTE['raw_' + p])}</b> <button class="ghost small" data-split="${p}">Pisah per kata</button></div>` : '';
+  return `<h3>${title}</h3>${raw}<div class="tbl"><table><thead><tr><th>No</th><th>Nama</th><th>L/P</th><th>Umur</th><th>Pekerjaan</th><th>Ket.</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderForm() {
+  let h = '';
+  for (const s of SECTIONS) {
+    h += `<h3>${s.t}</h3><div class="grid">${s.f.map(([k, l, o]) => inputHtml(k, l, o)).join('')}</div>`;
+    if (s.tables) h += s.tables.map(([p, t, n]) => tableHtml(p, t, n)).join('');
+    if (s.more) {
+      const open = s.more.f.some(([k]) => V[k]) ? ' open' : '';
+      h += `<details class="more"${open}><summary>${s.more.t}</summary><div class="grid" style="margin-top:10px">${s.more.f.map(([k, l, o]) => inputHtml(k, l, o)).join('')}</div></details>`;
+    }
+  }
+  $('form').innerHTML = h;
+  $('form').querySelectorAll('[data-k]').forEach((el) => el.addEventListener('input', () => {
+    V[el.dataset.k] = el.value;
+    if (SRC[el.dataset.k]) { SRC[el.dataset.k] = 'ubah'; }
+    refreshField(el.dataset.k); refreshChecks();
+    if (el.dataset.k === 'tgl_surat') renderSppn();
+  }));
+  $('form').querySelectorAll('[data-split]').forEach((b) => b.addEventListener('click', () => splitNames(b.dataset.split)));
+  Object.keys(TYPES).forEach(refreshField);
+}
+function refreshField(k) {
+  const w = $('w_' + k); if (!w) return;
+  const v = String(V[k] ?? '').trim();
+  const need = REQ.includes(k) && !v;
+  const s = SRC[k];
+  w.classList.toggle('need', need);
+  w.classList.toggle('cek', !need && (s === 'cek' || s === 'saran'));
+  const slot = w.querySelector('.pill-slot');
+  slot.innerHTML = need ? '<span class="pill kosong">wajib</span>'
+    : s === 'sdp' ? '<span class="pill sdp">SDP</span>'
+    : s === 'ai' ? '<span class="pill ai">AI · cocok</span>'
+    : s === 'cek' ? '<span class="pill cek">periksa</span>'
+    : s === 'saran' ? '<span class="pill cek">saran</span>'
+    : s === 'ubah' ? '<span class="pill ai">diubah</span>' : '';
+  if (NOTE[k]) $('n_' + k).textContent = NOTE[k];
+}
+function splitNames(p) {
+  const words = (NOTE['raw_' + p] || '').split(/\s+/).filter(Boolean);
+  for (let i = 1; i <= 7; i++) delete V[`${p}${i}_nama`];
+  words.slice(0, p === 'anak' ? 5 : 7).forEach((w, i) => { V[`${p}${i + 1}_nama`] = w; });
+  renderForm(); refreshChecks();
+}
+
+// ---------------------------------------------------------------- baca PDF
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+async function pdfToText(file) {
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
+  const pages = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const items = tc.items.filter((it) => it.str && it.str.trim()).map((it) => ({
+      x: it.transform[4], y: it.transform[5], w: it.width, h: Math.abs(it.transform[3]) || 10, s: it.str }));
+    const widths = items.filter((i) => i.s.length > 2 && i.w > 0).map((i) => i.w / i.s.length).sort((a, b) => a - b);
+    const cw = widths.length ? widths[Math.floor(widths.length / 2)] : 5;
+    items.sort((a, b) => b.y - a.y || a.x - b.x);
+    const lines = [];
+    for (const it of items) {
+      const ln = lines.find((l) => Math.abs(l.y - it.y) < Math.max(2, it.h * 0.45));
+      if (ln) ln.items.push(it); else lines.push({ y: it.y, items: [it] });
+    }
+    lines.sort((a, b) => b.y - a.y);
+    const out = lines.map((l) => {
+      l.items.sort((a, b) => a.x - b.x);
+      let s = '';
+      for (const it of l.items) {
+        const col = Math.round(it.x / cw);
+        if (col > s.length) s += ' '.repeat(col - s.length);
+        else if (s && !s.endsWith(' ')) s += ' ';
+        s += it.s;
+      }
+      return s.replace(/\s+$/, '');
+    });
+    pages.push(out.join('\n'));
+  }
+  return pages.join('\n\n');
+}
+
+// ---------------------------------------------------------------- pembacaan pasti (pola SDP)
+function grab(text, label, opt = {}) {
+  const re = new RegExp('(?:^|\\s{2,}|\\n)\\s*' + label + '\\s*:\\s*([^\\n]*?)(?=\\s{2,}|\\n|$)', 'i');
+  const m = text.match(re); if (!m) return null;
+  const v = m[1].trim(); return v && v !== '-' ? v : (opt.keepDash ? v : null);
+}
+function block(text, start, end) {
+  const i = text.search(new RegExp(start, 'i')); if (i < 0) return '';
+  const rest = text.slice(i + 1); const j = end ? rest.search(new RegExp(end, 'i')) : -1;
+  return j < 0 ? rest : rest.slice(0, j);
+}
+const DMY = /(\d{2})\/(\d{2})\/(\d{4})/;
+const iso = (s) => { const m = DMY.exec(s || ''); return m ? `${m[3]}-${m[2]}-${m[1]}` : null; };
+function lama(s) {
+  if (!s) return null;
+  const n = (u) => { const m = s.match(new RegExp('(\\d+)\\s*' + u, 'i')); return m ? +m[1] : 0; };
+  return { th: n('tahun'), bl: n('bulan'), hr: n('hari') };
+}
+function uang(s) {
+  if (!s || /^[-\s]*$/.test(s)) return 0;
+  let t = s.replace(/rp\.?/i, '').trim();
+  if (/^\d+(\.\d{1,2})?$/.test(t)) return Math.round(parseFloat(t));
+  t = t.replace(/\./g, '').replace(',', '.');
+  const v = parseFloat(t); return isFinite(v) ? Math.round(v) : null;
+}
+function parseSdp(text) {
+  const r = {};
+  // Detail perkara
+  r.noreg = grab(text, 'No Registrasi');
+  r.tgl_tahan = iso(grab(text, 'Tgl Mulai Ditahan'));
+  r.o_t13 = iso(grab(text, '1/3 Masa Hukuman'));
+  r.o_t12 = iso(grab(text, '1/2 Masa Hukuman'));
+  r.o_t23 = iso(grab(text, '2/3 Masa Hukuman'));
+  r.o_eksp = iso(grab(text, 'Tgl Ekspirasi Akhir'));
+  r.kejahatan = grab(text, 'Kejahatan');
+  r.pasal = grab(text, 'Pasal');
+  r.uu = grab(text, 'Undang-Undang');
+  const akhir = block(text, 'PUTUSAN AKHIR', 'PUTUSAN (PN|PT|MA)\\b');
+  if (akhir) {
+    r.no_put = grab(akhir, 'No Putusan');
+    r.tgl_put = iso(grab(akhir, 'Tgl Putusan'));
+    r.lama = lama(grab(akhir, 'Lama Pidana'));
+    const d = grab(akhir, 'Denda', { keepDash: true }); r.denda = d == null ? null : uang(d);
+    const sb = grab(akhir, 'Pidana Kurungan Subsider Denda', { keepDash: true });
+    if (sb != null) { const l = lama(sb.replace(/-/g, '0')); r.subsider = l ? l.th * 12 + l.bl : 0; r.subsider_hr = l ? l.hr : 0; }
+  }
+  const rem = block(text, '\\n\\s*REMISI\\s*\\n', '\\n\\s*GRASI');
+  r.remisiKosong = /Data Kosong/i.test(rem);
+  const pel = block(text, '\\n\\s*PELANGGARAN\\s*\\n', 'REGISTER F');
+  r.pelanggaranKosong = pel ? /Data Kosong/i.test(pel) : null;
+  // Identitas
+  r.nik = (text.match(/NIK\s*:\s*(\d{16})/) || [])[1] || null;
+  r.nama = grab(text, 'Nama warga binaan');
+  r.tmp_lahir = grab(text, 'Tempat lahir');
+  r.tgl_lahir = iso(grab(text, 'Tanggal lahir'));
+  r.jk = grab(text, 'Jenis kelamin');
+  r.agama = grab(text, 'Agama');
+  r.pend = grab(text, 'Pendidikan');
+  r.kerja = grab(text, 'Pekerjaan');
+  r.kawin = grab(text, 'Status Pernikahan');
+  r.wn = grab(text, 'Warga Negara');
+  r.telp = grab(text, 'No\\.?\\s*Telp\\.? Keluarga');
+  // untuk pemeriksaan silang
+  r.nama2 = grab(text, 'Nama');
+  r.tgl_lahir2 = iso(grab(text, 'Tgl Lahir'));
+  return r;
+}
+
+// ---------------------------------------------------------------- pembacaan identitas (dua kolom)
+// Pembaca "Laporan Identitas" SDP (dua kolom) dari teks bertata letak.
+function parseIdentitas(text) {
+  const lines = text.split('\n');
+  const start = lines.findIndex((l) => /Nomor Induk\s*:/.test(l) && /Jenis kelamin\s*:/i.test(l));
+  if (start < 0) return null;
+  const head = lines[start];
+  const rc = head.search(/Jenis kelamin/i);                 // awal kolom kanan
+  const lColon = head.indexOf(':');                          // posisi ':' kolom kiri
+  const rColon = head.indexOf(':', rc);                      // posisi ':' kolom kanan
+  if (rc < 0 || lColon < 0 || rColon < 0) return null;
+  const cols = [{ from: 0, to: rc, colon: lColon, out: [], pending: '' },
+                { from: rc, to: Infinity, colon: rColon, out: [], pending: '' }];
+  for (const c of cols) c.lastColon = c.colon - c.from;
+  for (let i = start; i < lines.length; i++) {
+    const line = lines[i];
+    if (/Foto Tampak/i.test(line)) break;
+    for (const c of cols) {
+      const seg = line.slice(c.from, c.to === Infinity ? undefined : c.to);
+      if (!seg.trim()) continue;
+      const last = c.out[c.out.length - 1];
+      const ci = seg.indexOf(':');
+      if (ci >= 0) {
+        const labelText = seg.slice(0, ci).trim();
+        const valueText = seg.slice(ci + 1).trim();
+        c.lastColon = ci;
+        c.out.push({ label: (labelText || c.pending).trim(), lines: valueText ? [valueText] : [] });
+        c.pending = '';
+        continue;
+      }
+      const startPos = seg.search(/\S/);
+      if (startPos >= c.lastColon - 1) {                     // lanjutan nilai
+        if (last) last.lines.push(seg.trim());
+        continue;
+      }
+      // potongan label, mungkin diikuti lanjutan nilai di kolom nilai
+      const m = /^(.*?\S)\s{2,}(\S.*)$/.exec(seg.slice(startPos));
+      let labelText = seg.trim(), valueText = '';
+      if (m && startPos + seg.slice(startPos).indexOf(m[2]) >= c.lastColon - 1) { labelText = m[1].trim(); valueText = m[2].trim(); }
+      if (valueText) { if (last) { last.label += ' ' + labelText; last.lines.push(valueText); } }
+      else if (/^kandung$/i.test(labelText) && last) last.label += ' ' + labelText;
+      else c.pending = (c.pending + ' ' + labelText).trim();
+    }
+  }
+  const all = [...cols[0].out, ...cols[1].out];
+  const get = (re) => { const e = all.find((x) => re.test(x.label)); return e ? e.lines.filter((v) => v !== '-') : null; };
+  const one = (re) => { const v = get(re); return v && v.length ? v.join(' ').replace(/\s+/g, ' ').trim() : null; };
+  return {
+    entries: all,
+    nama: one(/^Nama warga binaan$/i), nik: one(/^NIK$/i), tmp_lahir: one(/^Tempat lahir$/i),
+    tgl_lahir: one(/^Tanggal lahir$/i), jk: one(/^Jenis kelamin$/i), agama: one(/^Agama$/i),
+    pend: one(/^Pendidikan$/i), kerja: one(/^Pekerjaan$/i), kawin: one(/^Status Pernikahan$/i),
+    wn: one(/^Warga Negara$/i), alamat: one(/^Alamat Tinggal$/i),
+    ayah_nama: one(/^Nama Bapak( Kandung)?$/i), ayah_alamat: one(/^Alamat Bapak( Kandung)?$/i),
+    ibu_nama: one(/^Nama Ibu( Kandung)?$/i), ibu_alamat: one(/^Alamat Ibu( Kandung)?$/i),
+    ps_nama: one(/^Nama (Suami|Istri)$/i), ps_alamat: one(/^Alamat (Suami|Istri)$/i),
+    anak: get(/^Nama Anak$/i) || [], saudara: get(/^Nama Saudara( Kandung)?$/i) || [],
+    telp: one(/^No\.?\s*Telp\.?\s*Keluarga$/i),
+  };
+}
+
+// ---------------------------------------------------------------- normalisasi
+const norm = (s) => String(s ?? '').toUpperCase().replace(/\s+/g, ' ').trim();
+const up = (s) => (s == null ? null : norm(s));
+function mapPend(s) {
+  const t = norm(s);
+  if (!t) return null;
+  if (/TIDAK|BELUM SEKOLAH/.test(t)) return 'Tidak sekolah';
+  if (/\bS[23]\b|PASCA|MAGISTER|DOKTOR/.test(t)) return 'Pascasarjana';
+  if (/\bS1\b|SARJANA|STRATA/.test(t)) return 'Sarjana';
+  if (/\bD[1-4]\b|DIPLOMA|AKADEMI/.test(t)) return 'Diploma';
+  if (/SMA|SLTA|SMK|STM|MA\b|ALIYAH|PAKET C/.test(t)) return 'SMA/sederajat';
+  if (/SMP|SLTP|MTS|TSANAWIYAH|PAKET B/.test(t)) return 'SMP/sederajat';
+  if (/\bSD\b|MI\b|IBTIDAIYAH|PAKET A/.test(t)) return 'SD/sederajat';
+  return null;
+}
+function mapAgama(s) {
+  const t = norm(s); if (!t) return null;
+  if (/ISLAM/.test(t)) return 'Islam'; if (/KATOLIK/.test(t)) return 'Kristen Katolik';
+  if (/KRISTEN|PROTESTAN/.test(t)) return 'Kristen Protestan'; if (/HINDU/.test(t)) return 'Hindu';
+  if (/BUD/.test(t)) return 'Buddha'; if (/KONG|KHONG/.test(t)) return 'Konghucu'; return 'Lainnya';
+}
+function mapKawin(s) {
+  const t = norm(s); if (!t) return null;
+  if (/BELUM/.test(t)) return 'BELUM MENIKAH';
+  if (/JANDA|DUDA|CERAI/.test(t)) return /MATI/.test(t) ? 'CERAI MATI' : 'CERAI';
+  if (/KAWIN|MENIKAH/.test(t)) return 'MENIKAH';
+  return null;
+}
+const mapJk = (s) => { const t = norm(s); return !t ? null : /PEREMPUAN|WANITA|^P$/.test(t) ? 'Perempuan' : /LAKI|PRIA|^L$/.test(t) ? 'Laki-laki' : null; };
+const mapKerja = (s) => { const t = norm(s); return !t ? null : /IBU RUMAH TANGGA|^IRT$/.test(t) ? 'IRT' : t; };
+const mapAlamat = (s) => { const t = norm(s); return !t ? null : t.replace(/^RT\s*\.?\s*\/?\s*RW\.?\s*[\d\s\/]+,?\s*/, ''); };
+function mapKategori(kejahatan) {
+  const t = norm(kejahatan); if (!t) return null;
+  if (/NARKOTIKA|PSIKOTROPIKA/.test(t)) return 'Narkotika & Psikotropika';
+  const hit = DATA.cats.find((c) => norm(c).split(/[^A-Z]+/).some((w) => w.length > 4 && t.includes(w)));
+  return hit || null;
+}
+function lastDayPrevMonth() {
+  const d = new Date(); const e = new Date(d.getFullYear(), d.getMonth(), 0);
+  return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, '0')}-${String(e.getDate()).padStart(2, '0')}`;
+}
+function nikDate(nik, jk) {
+  if (!/^\d{16}$/.test(nik || '')) return null;
+  let dd = +nik.slice(6, 8); const mm = +nik.slice(8, 10); const yy = +nik.slice(10, 12);
+  const female = dd > 40; if (female) dd -= 40;
+  return { dd, mm, yy, female };
+}
+
+// ---------------------------------------------------------------- gabungkan
+const ALERTS = [];
+function put(k, v, src, note) {
+  if (v === null || v === undefined || v === '') return;
+  V[k] = v; SRC[k] = src; if (note) NOTE[k] = note;
+}
+function inText(raw, text) { const a = norm(raw); return a.length > 1 && norm(text).includes(a); }
+
+function build(text, sdp, idt) {
+  idt = idt || {};
+  const sPut = (k, val, raw) => put(k, val, 'sdp', raw != null && raw !== val ? 'Tertulis di PDF: ' + raw : null);
+
+  // identitas
+  if (sdp.nama || idt.nama) sPut('nama', up(sdp.nama || idt.nama));
+  const pick = (a, b) => a || b || null;
+  const P = (k, raw, mapped) => { if (raw) sPut(k, mapped === undefined ? raw : mapped, raw); };
+  P('noreg', sdp.noreg);
+  P('nik', pick(sdp.nik, (idt.nik || '').replace(/\D/g, '')));
+  P('tmp_lahir', pick(sdp.tmp_lahir, idt.tmp_lahir), up(pick(sdp.tmp_lahir, idt.tmp_lahir)));
+  P('tgl_lahir', pick(sdp.tgl_lahir, iso(idt.tgl_lahir)));
+  P('jk', pick(sdp.jk, idt.jk), mapJk(pick(sdp.jk, idt.jk)));
+  P('agama', pick(sdp.agama, idt.agama), mapAgama(pick(sdp.agama, idt.agama)));
+  P('pend', pick(sdp.pend, idt.pend), mapPend(pick(sdp.pend, idt.pend)));
+  P('kerja', pick(sdp.kerja, idt.kerja), mapKerja(pick(sdp.kerja, idt.kerja)));
+  P('kawin', pick(sdp.kawin, idt.kawin), mapKawin(pick(sdp.kawin, idt.kawin)));
+  if (idt.alamat) put('alamat', mapAlamat(idt.alamat), 'sdp', 'Tertulis di PDF: ' + idt.alamat);
+  // putusan
+  if (sdp.no_put) sPut('no_put', sdp.no_put);
+  if (sdp.tgl_put) sPut('tgl_put', sdp.tgl_put);
+  if (sdp.kejahatan || sdp.pasal) sPut('pidana', up([sdp.kejahatan, sdp.pasal, sdp.uu].filter(Boolean).join(' ')));
+  if (sdp.kejahatan) { const k = mapKategori(sdp.kejahatan); if (k) put('kategori', k, 'cek', 'Dari "Kejahatan: ' + sdp.kejahatan + '" – pastikan kategorinya'); }
+  if (sdp.lama) { sPut('th', sdp.lama.th); sPut('bl', sdp.lama.bl); sPut('hr', sdp.lama.hr); }
+  if (sdp.denda != null) { if (sdp.denda > 0) sPut('denda', sdp.denda); }
+  if (sdp.subsider != null && sdp.subsider > 0) sPut('subsider', sdp.subsider);
+  if (sdp.subsider_hr) ALERTS.push(['warn', `Subsider di SDP ada ${sdp.subsider_hr} hari; template hanya menampung bulan. Periksa isian subsider.`]);
+  if (sdp.tgl_tahan) sPut('tgl_tahan', sdp.tgl_tahan);
+  ['o_t13', 'o_t12', 'o_t23', 'o_eksp'].forEach((k) => sdp[k] && sPut(k, sdp[k]));
+  put('residivis', 0, 'saran', 'Bawaan 0 – ubah bila residivis');
+  if (sdp.remisiKosong) { sPut('rem_bl', 0); sPut('rem_hr', 0); NOTE.rem_bl = 'Tabel remisi di SDP: Data Kosong'; }
+  else if (/REMISI/i.test(text)) ALERTS.push(['warn', 'Tabel REMISI di SDP berisi data. Isi jumlah remisi (bulan/hari) secara manual.']);
+  if (sdp.pelanggaranKosong === false) ALERTS.push(['bad', 'SDP mencatat PELANGGARAN. Daftar F di template masih berisi "Belum pernah melanggar tata tertib" – ubah di lembar PENGATURAN sebelum mencetak.']);
+  // keluarga
+  const fam = (k, raw, mapped) => { if (raw) put(k, mapped === undefined ? up(raw) : mapped, 'sdp', mapped !== undefined && mapped !== raw ? 'Tertulis di PDF: ' + raw : null); };
+  fam('ayah_nama', idt.ayah_nama); fam('ayah_alamat', idt.ayah_alamat, mapAlamat(idt.ayah_alamat));
+  fam('ibu_nama', idt.ibu_nama); fam('ibu_alamat', idt.ibu_alamat, mapAlamat(idt.ibu_alamat));
+  for (const p of ['ayah', 'ibu']) if (/ALMARHUM/.test(norm(V[p + '_alamat']))) { put(p + '_kerja', V[p + '_alamat'], 'saran', 'Orang tua telah meninggal'); }
+  fam('ps_nama', idt.ps_nama); fam('ps_alamat', idt.ps_alamat, mapAlamat(idt.ps_alamat));
+  const anak = (idt.anak || []).map(norm).filter((x) => x && x !== '-'), sdr = (idt.saudara || []).map(norm).filter((x) => x && x !== '-');
+  anak.slice(0, 5).forEach((n, i) => put(`anak${i + 1}_nama`, n, 'sdp'));
+  sdr.slice(0, 7).forEach((n, i) => put(`sdr${i + 1}_nama`, n, 'sdp'));
+  if (anak.length > 5 || sdr.length > 7) ALERTS.push(['bad', 'Jumlah anak/saudara di SDP melebihi baris yang tersedia di LPP (5 anak, 7 saudara).']);
+  if (anak.length) NOTE.raw_anak = anak.join(' ');
+  if (sdr.length) NOTE.raw_sdr = sdr.join(' ');
+  if (anak.some((n) => n.split(' ').length > 1)) ALERTS.push(['warn', `Nama anak tertulis "${anak.join(' / ')}". Bisa jadi lebih dari satu anak dalam satu baris – gunakan tombol "Pisah per kata" bila perlu, lalu isi L/P dan umur.`]);
+  if (anak.length || sdr.length) ALERTS.push(['info', 'L/P, umur dan pekerjaan anak/saudara tidak ada di SDP – isi manual.']);
+  // penjamin (saran dari ayah)
+  if (V.ayah_nama && !/ALMARHUM/.test(norm(V.ayah_alamat))) {
+    put('pj_nama', V.ayah_nama, 'saran', 'Saran: ayah kandung – ganti bila penjamin lain');
+    put('pj_hub', 'AYAH KANDUNG', 'saran'); if (V.ayah_alamat) put('pj_alamat', V.ayah_alamat, 'saran');
+  }
+  const telp = sdp.telp || idt.telp;
+  if (telp) put('pj_hp', telp.replace(/[^\d+]/g, ''), sdp.telp ? 'sdp' : 'cek', 'No. Telp Keluarga di SDP: ' + telp);
+  put('tgl_surat', lastDayPrevMonth(), 'saran', 'Bawaan: akhir bulan lalu');
+
+  // pemeriksaan silang
+  if (V.nik && V.tgl_lahir) {
+    const nd = nikDate(V.nik); const [y, m, d] = V.tgl_lahir.split('-').map(Number);
+    if (nd && (nd.dd !== d || nd.mm !== m || nd.yy !== y % 100)) {
+      ALERTS.push(['bad', `NIK ${V.nik} menunjukkan tanggal lahir ${String(nd.dd).padStart(2, '0')}/${String(nd.mm).padStart(2, '0')}/..${String(nd.yy).padStart(2, '0')}, sedangkan SDP mencatat ${fmt(V.tgl_lahir)}. Cocokkan dengan KTP/KK.`]);
+      SRC.nik = 'cek'; SRC.tgl_lahir = 'cek';
+    }
+    if (nd && V.jk && (nd.female ? 'Perempuan' : 'Laki-laki') !== V.jk) ALERTS.push(['bad', `NIK menunjukkan jenis kelamin ${nd.female ? 'perempuan' : 'laki-laki'}, berbeda dengan isian.`]);
+  }
+  if (sdp.nama2 && V.nama && norm(sdp.nama2) !== V.nama && !/NAMA WARGA/.test(norm(sdp.nama2))) ALERTS.push(['warn', `Nama berbeda antar dokumen: "${sdp.nama2}" dan "${V.nama}".`]);
+  if (sdp.tgl_lahir2 && sdp.tgl_lahir && sdp.tgl_lahir2 !== sdp.tgl_lahir) ALERTS.push(['bad', 'Tanggal lahir berbeda antara PDF Identitas dan Detail Perkara.']);
+  if (sdp.no_put && /K\/PID/i.test(sdp.no_put)) ALERTS.push(['info', `Putusan terakhir adalah putusan Mahkamah Agung (${sdp.no_put}); lama pidana mengikuti putusan ini.`]);
+  if (V.o_eksp && V.tgl_tahan && sdp.lama) {
+    const calc = addMonths(V.tgl_tahan, sdp.lama.th * 12 + sdp.lama.bl, sdp.lama.hr - 1);
+    if (calc !== V.o_eksp) ALERTS.push(['info', `Ekspirasi SDP ${fmt(V.o_eksp)} berbeda dari hitungan sederhana ${fmt(calc)} (tgl ditahan + lama pidana). Yang dipakai: tanggal dari SDP.`]);
+  }
+  if (!idt.nama) ALERTS.push(['warn', 'PDF Identitas WBP tidak dikenali: alamat dan data keluarga perlu diisi manual.']);
+}
+function addMonths(isoS, months, days) {
+  const [y, m, d] = isoS.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1 + months, d)); t.setUTCDate(t.getUTCDate() + days);
+  return t.toISOString().slice(0, 10);
+}
+const fmt = (s) => (s ? s.split('-').reverse().join('/') : '');
+
+// ---------------------------------------------------------------- pemeriksaan
+function refreshChecks() {
+  const missing = REQ.filter((k) => !String(V[k] ?? '').trim());
+  const cek = Object.keys(SRC).filter((k) => (SRC[k] === 'cek' || SRC[k] === 'saran') && String(V[k] ?? '').trim());
+  const extra = [];
+  if (+V.denda > 0 && !String(V.subsider ?? '').trim()) extra.push('Ada denda tetapi subsider kosong.');
+  if (V.nik && !/^\d{16}$/.test(V.nik)) extra.push('NIK harus 16 digit angka.');
+  let h = ALERTS.map(([c, t]) => `<div class="alert ${c}">${esc(t)}</div>`).join('');
+  $('alerts').innerHTML = h;
+  const label = (k) => { for (const s of SECTIONS) for (const g of [s.f, s.more ? s.more.f : []]) for (const [kk, l] of g) if (kk === k) return l; return k; };
+  let f = '';
+  if (missing.length) f += `<div class="alert bad">Belum diisi: ${missing.map(label).join(', ')}.</div>`;
+  extra.forEach((t) => { f += `<div class="alert bad">${esc(t)}</div>`; });
+  if (V.pj_hp && /^0*$/.test(String(V.pj_hp))) f += '<div class="alert warn">No. HP penjamin masih 000 – isi nomor asli bila ada.</div>';
+  if (cek.length) f += `<div class="alert warn">Perlu diperiksa ulang (${cek.length}): ${cek.map(label).join(', ')}.</div>`;
+  if (!missing.length && !extra.length) f += '<div class="alert ok">Semua isian wajib sudah terisi.</div>';
+  $('finalAlerts').innerHTML = f;
+  $('dlBtn').disabled = !!(missing.length || extra.length) || !$('confirmBox').checked || !template;
+  const isAhir = String(V.wali || '').toUpperCase().includes(SIG_OWNER);
+  $('sigBox').classList.toggle('hidden', !V.wali || isAhir || !ASSETS);
+  if (V.wali && !isAhir) $('sigNote').textContent = `Contoh tanda tangan yang ada di template hanya milik ${SIG_OWNER}. Untuk ${V.wali}, tempat tanda tangan wali di PDF dibiarkan kosong (ditandatangani basah) – atau unggah gambar tanda tangannya di sini. Di file Excel, gambar tanda tangan ${SIG_OWNER} masih menempel di lembar SPPN: hapus manual sebelum mencetak dari Excel.`;
+}
+$('confirmBox').addEventListener('change', refreshChecks);
+
+// ---------------------------------------------------------------- SPPN
+const SLOTS = ['JULI', 'AGUSTUS', 'SEPTEMBER'];
+let sppnChoice = {};
+function slotMonths() {
+  const s = V.tgl_surat; if (!s) return null;
+  const [y, m] = s.split('-').map(Number);
+  return [-2, -1, 0].map((o) => { const d = new Date(Date.UTC(y, m - 1 + o, 1)); return { m: d.getUTCMonth(), y: d.getUTCFullYear() }; });
+}
+function renderSppn() {
+  const ms = slotMonths(); const tb = $('sppnTable').tBodies[0];
+  if (!ms || !sppnSheets.length) { tb.innerHTML = '<tr><td colspan="6" class="status">Isi tanggal surat dulu.</td></tr>'; return; }
+  const usable = sppnSheets.filter((s) => s.scores[0] > 0);
+  const used = new Set();
+  const pick = ms.map((mo, i) => {
+    const name = BULAN[mo.m];
+    const keep = sppnChoice[i];
+    if (keep && usable.some((s) => s.sheet === keep) && sppnChoice['m' + i] === name) { used.add(keep); return keep; }
+    const same = usable.filter((s) => (s.month || '').toLowerCase() === name.toLowerCase() && !used.has(s.sheet));
+    const best = same.find((s) => s.sheet === name.toUpperCase()) || same[0] || usable.find((s) => !used.has(s.sheet));
+    if (best) used.add(best.sheet);
+    sppnChoice[i] = best && best.sheet; sppnChoice['m' + i] = name;
+    return best && best.sheet;
+  });
+  tb.innerHTML = ms.map((mo, i) => {
+    const cur = usable.find((s) => s.sheet === pick[i]);
+    const opts = usable.map((s) => `<option value="${esc(s.sheet)}"${s.sheet === pick[i] ? ' selected' : ''}>${esc(s.sheet)} – ${esc(s.month || '')} ${esc(s.year || '')}</option>`).join('');
+    const f = (v) => (v == null ? '–' : v.toFixed(2).replace('.', ','));
+    return `<tr><td><b>${BULAN[mo.m]} ${mo.y}</b><div class="raw">lembar ${SLOTS[i]}</div></td>
+      <td><select data-slot="${i}" aria-label="Sumber nilai ${BULAN[mo.m]}">${opts}</select></td>
+      <td class="num">${f(cur && cur.scores[0])}</td><td class="num">${f(cur && cur.scores[1])}</td>
+      <td class="num">${f(cur && cur.scores[2])}</td><td class="num">${f(cur && cur.scores[3])}</td></tr>`;
+  }).join('');
+  tb.querySelectorAll('select').forEach((sel) => sel.addEventListener('change', () => { sppnChoice[sel.dataset.slot] = sel.value; renderSppn(); }));
+  const al = [];
+  const srcs = pick.filter(Boolean);
+  if (new Set(srcs).size < srcs.length) al.push(['warn', 'Ada sumber nilai yang dipakai lebih dari sekali – nilai dua bulan akan sama persis.']);
+  ms.forEach((mo, i) => { const s = usable.find((x) => x.sheet === pick[i]); if (s && (s.month || '').toLowerCase() !== BULAN[mo.m].toLowerCase()) al.push(['warn', `${BULAN[mo.m]}: tidak ada lembar bulan ${BULAN[mo.m]}, dipakai ${s.sheet} (${s.month}). Jumlah hari bisa berbeda – periksa lembar ${SLOTS[i]} sebelum mencetak.`]); });
+  $('sppnAlerts').innerHTML = al.map(([c, t]) => `<div class="alert ${c}">${esc(t)}</div>`).join('');
+}
+
+// ---------------------------------------------------------------- template
+const API = 'https://script.google.com/macros/s/AKfycbwnH7WAw-o_q-uTT4Ld5Nl_cTI4XHNbgrJMbZVrvVt6RudRMC8kPBKhKMBnboqs5hOPyg/exec';
+async function server(fn, kind, i) {
+  if (window.google && google.script && google.script.run)
+    return new Promise((ok, no) => google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](kind, i));
+  const q = fn === 'getFileInfo' ? 'f=info&kind=' + kind : 'f=part&kind=' + kind + '&i=' + i;
+  let lastErr;
+  for (let t = 0; t < 3; t++) {
+    try {
+      const r = await fetch(API + '?' + q, { credentials: 'omit', cache: 'no-store' });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error);
+      return j.data;
+    } catch (e) { lastErr = e; await new Promise((ok) => setTimeout(ok, 1500)); }
+  }
+  throw new Error('Tidak bisa mengambil data dari server (' + (lastErr && lastErr.message || lastErr) + '). Periksa koneksi internet lalu muat ulang halaman.');
+}
+async function fetchDrive(kind, label, st) {
+  const t = await server('getFileInfo', kind);
+  const u8 = new Uint8Array(t.size); let off = 0;
+  for (let i = 0; i < t.parts; i++) {
+    st(`${label}… ${Math.round((i / t.parts) * 100)}%`);
+    const bin = atob(await server('getFilePart', kind, i));
+    for (let j = 0; j < bin.length; j++) u8[off + j] = bin.charCodeAt(j);
+    off += bin.length;
+  }
+  if (off !== t.size) throw new Error('ukuran ' + t.name + ' tidak cocok');
+  return { name: t.name, bytes: u8 };
+}
+let ASSETS = null, SIG_AHIR = null, assetErr = '';
+const SIG_OWNER = 'AHIR MUNANDAR';
+async function loadAssets() {
+  try {
+    const a = await fetchDrive('aset', 'Memuat aset PDF', () => {});
+    const j = JSON.parse(new TextDecoder().decode(a.bytes));
+    const bin = atob(j.latar); const lat = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) lat[i] = bin.charCodeAt(i);
+    ASSETS = { latar: lat, layout: j.layout, check: j.check };
+  } catch (e) { assetErr = (e && e.message) || String(e); }
+}
+async function loadTemplate() {
+  const st = $('readStatus');
+  st.textContent = 'Memuat template…';
+  const assetP = loadAssets();
+  try {
+    const t = await fetchDrive('template', 'Memuat template', (m) => { st.textContent = m; });
+    template = t.bytes.buffer;
+    sppnSheets = await XlsxFill.listSppnSheets(template);
+    const wr = []; for (let r = 10; r <= 45; r++) wr.push('AE' + r, 'AF' + r);
+    const w = await XlsxFill.readSheetCells(template, 'DAFTAR PEJABAT', wr);
+    DATA.walis = []; for (let r = 10; r <= 45; r++) if (w['AE' + r]) DATA.walis.push([w['AE' + r], w['AF' + r]]);
+    const cr = []; for (let r = 3; r <= 80; r++) cr.push('L' + r);
+    const c = await XlsxFill.readSheetCells(template, 'BANTU', cr);
+    DATA.cats = cr.map((x) => c[x]).filter(Boolean);
+    for (const s of SECTIONS) for (const [k, , o] of s.f) {
+      if (k === 'wali') o.opts = DATA.walis.map((x) => x[0]);
+      if (k === 'kategori') o.opts = DATA.cats;
+    }
+    try { SIG_AHIR = await XlsxFill.imageAt(template, 'JULI', 197, 29); } catch (e) { SIG_AHIR = null; }
+    st.textContent = 'Memuat aset PDF…';
+    await assetP;
+    st.textContent = 'Template siap: ' + t.name + (ASSETS ? '' : ' (PDF tidak tersedia: ' + assetErr + ' – hanya Excel)');
+  } catch (e) {
+    template = null;
+    st.textContent = 'Template gagal dimuat: ' + (e && e.message ? e.message : e) + ' – pastikan akun Anda punya akses ke file template di Google Drive.';
+    st.classList.add('err');
+  }
+  setFiles([]);
+}
+loadTemplate();
+
+// ---------------------------------------------------------------- alur
+function setFiles(list) {
+  files = [...files, ...[...list].filter((f) => /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name))];
+  $('fileList').innerHTML = files.map((f, i) => `<li><span>${esc(f.name)} <span class="t">${(f.size / 1024).toFixed(0)} KB</span></span><button class="ghost small" data-rm="${i}">Hapus</button></li>`).join('');
+  $('fileList').querySelectorAll('[data-rm]').forEach((b) => b.addEventListener('click', () => { files.splice(+b.dataset.rm, 1); setFiles([]); }));
+  $('readBtn').disabled = !files.length || !template;
+}
+const drop = $('drop');
+drop.addEventListener('click', () => $('pdfInput').click());
+drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('pdfInput').click(); } });
+$('pdfInput').addEventListener('change', (e) => { setFiles(e.target.files); e.target.value = ''; });
+['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => setFiles(e.dataTransfer.files));
+
+function resetData() { for (const o of [V, SRC, NOTE]) for (const k of Object.keys(o)) delete o[k]; ALERTS.length = 0; sppnChoice = {}; }
+function showReview() {
+  ['reviewCard', 'sppnCard', 'dlCard'].forEach((id) => $(id).classList.remove('hidden'));
+  $('confirmBox').checked = false;
+  renderForm(); renderSppn(); refreshChecks();
+}
+$('manualBtn').addEventListener('click', () => {
+  resetData(); put('residivis', 0, 'saran'); put('rem_bl', 0, 'saran'); put('rem_hr', 0, 'saran');
+  put('tgl_surat', lastDayPrevMonth(), 'saran', 'Bawaan: akhir bulan lalu');
+  showReview();
+});
+$('readBtn').addEventListener('click', async () => {
+  const st = $('readStatus'); st.classList.remove('err');
+  $('readBtn').disabled = true;
+  try {
+    resetData();
+    st.textContent = 'Membaca PDF…';
+    let text = '';
+    for (const f of files) text += `\n=== FILE: ${f.name} ===\n` + (await pdfToText(f)) + '\n';
+    $('srcText').textContent = text; $('srcBox').classList.remove('hidden');
+    if (text.replace(/=== FILE.*===|\s/g, '').length < 50) throw new Error('PDF tidak berisi teks (hasil scan?). Gunakan PDF cetakan langsung dari SDP.');
+    const sdp = parseSdp(text);
+    build(text, sdp, parseIdentitas(text));
+    st.textContent = 'Selesai. Periksa data di bawah.';
+    showReview();
+    $('reviewCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    st.textContent = e.message || String(e); st.classList.add('err');
+  } finally { $('readBtn').disabled = !files.length; }
+});
+
+// ---------------------------------------------------------------- unduh
+let outFiles = [];
+const fileBase = () => String(V.nama || 'WBP').toUpperCase().replace(/[\\/:*?"<>|.,]+/g, ' ').trim().replace(/\s+/g, '_').slice(0, 100);
+async function readSig() {
+  if (String(V.wali || '').toUpperCase().includes(SIG_OWNER)) return SIG_AHIR ? Object.assign({}, SIG_AHIR, { exact: true }) : null;
+  const f = $('sigInput').files[0]; if (!f) return null;
+  const bytes = new Uint8Array(await f.arrayBuffer());
+  const png = bytes[0] === 0x89 && bytes[1] === 0x50;
+  const jpg = bytes[0] === 0xFF && bytes[1] === 0xD8;
+  if (!png && !jpg) throw new Error('Tanda tangan harus JPG atau PNG.');
+  return { bytes, type: png ? 'png' : 'jpg', exact: false };
+}
+function showOutputs() {
+  outFiles.forEach((o) => { if (o.url) URL.revokeObjectURL(o.url); o.url = URL.createObjectURL(o.blob); });
+  $('outList').innerHTML = outFiles.map((o) => `<li><span><span class="kind">${esc(o.kind)}</span><br>${esc(o.name)} <span class="status">${(o.blob.size / 1024).toFixed(0)} KB</span></span><a class="dl" href="${o.url}" download="${esc(o.name)}">Unduh</a></li>`).join('');
+}
+$('dlBtn').addEventListener('click', async () => {
+  const st = $('dlStatus'); st.classList.remove('err');
+  $('dlBtn').disabled = true; $('outList').innerHTML = ''; outFiles = [];
+  try {
+    const cells = {};
+    for (const [k, ref] of Object.entries(MAP)) {
+      let v = V[k]; v = v == null ? '' : String(v).trim();
+      const t = TYPES[k] || (/_umur$/.test(k) ? 'number' : 'text');
+      if (v === '') cells[ref] = null;
+      else if (t === 'date') cells[ref] = XlsxFill.excelDate(v);
+      else if (t === 'number') { const n = Number(v); if (!isFinite(n)) throw new Error('Isian angka tidak valid: ' + k); cells[ref] = n; }
+      else cells[ref] = v;
+    }
+    const scoreMap = {}; SLOTS.forEach((s, i) => { if (sppnChoice[i]) scoreMap[s] = sppnChoice[i]; });
+    const base = fileBase();
+    if (ASSETS && window.PDFLib) {
+      st.textContent = 'Menyusun PDF…';
+      const r = await Berkas.makePdfs({ PDFLib: window.PDFLib, template, cells, scoreMap, assets: ASSETS, sig: await readSig() });
+      outFiles.push({ kind: 'PDF – LPP + SPPN (3 bulan)', name: base + '_LPP_SPPN.pdf', blob: new Blob([r.lppSppn], { type: 'application/pdf' }) });
+      outFiles.push({ kind: 'PDF – Daftar F', name: base + '_DF.pdf', blob: new Blob([r.df], { type: 'application/pdf' }) });
+    }
+    st.textContent = 'Menyusun file Excel…';
+    const xl = await XlsxFill.fillWorkbook(template, cells, scoreMap);
+    outFiles.push({ kind: 'Excel – semua lembar', name: base + '.xlsx', blob: xl });
+    showOutputs();
+    st.textContent = (ASSETS && window.PDFLib ? 'Berkas siap. ' : 'PDF tidak tersedia (' + (assetErr || 'pustaka PDF gagal dimuat') + '); hanya Excel. ') + 'Klik Unduh pada tiap file.';
+  } catch (e) {
+    st.textContent = e.message || String(e); st.classList.add('err');
+  } finally { refreshChecks(); }
+});
+</script>
+</body>
+</html>
